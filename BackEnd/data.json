@@ -1,0 +1,19 @@
+{
+  "documents": [
+    "./BackEnd/Data/BTechCSE.md",
+    "./BackEnd/Data/BTechCSE.pdf",
+    "./BackEnd/Data/BTechDSAI.md",
+    "./BackEnd/Data/BTechECE.md",
+    "./BackEnd/Data/BTechECE.pdf",
+    "./BackEnd/Data/FacultyContacts.md",
+    "./BackEnd/Data/IMTechCSE.md",
+    "./BackEnd/Data/IMTechECE.md",
+    "./BackEnd/Data/IMtechECE.pdf",
+    "./BackEnd/Data/MSR.pdf",
+    "./BackEnd/Data/MTechAIDS.md",
+    "./BackEnd/Data/MTechCSE.md",
+    "./BackEnd/Data/OtherContacts.md",
+    "./BackEnd/Data/Placement.md",
+    "./BackEnd/Data/SquareOneBrochure.pdf"
+  ]
+}
