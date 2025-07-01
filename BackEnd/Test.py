@@ -1,3 +1,6 @@
+#This code tests the chatbot built
+
+#Importing necessary documents
 import os
 import json
 from dotenv import load_dotenv
