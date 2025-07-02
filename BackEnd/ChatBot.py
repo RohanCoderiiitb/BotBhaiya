@@ -158,4 +158,4 @@ class Generation:
         formatted_prompt = prompt.invoke({"query":self.query, "context":context})
         answer = llm.invoke(formatted_prompt)
         sources = set(doc.metadata.get("source", "Unknown source") for doc in retrieved_docs)
-        return answer.content, sources
+        return answer.content, sources 
