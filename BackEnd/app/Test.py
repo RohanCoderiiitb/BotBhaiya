@@ -4,7 +4,7 @@
 import os
 import json
 from dotenv import load_dotenv
-from ChatBot import Indexing, Generation, query_translation
+from chatbot import Indexing, Generation, query_translation
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
