@@ -1,21 +1,11 @@
 # This code implements a RAG pipeline to build the AI Chatbot
 
 #Importing the necessary libraries
-import os 
-from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader, UnstructuredMarkdownLoader, WebBaseLoader, UnstructuredPowerPointLoader, UnstructuredWordDocumentLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.vectorstores import Chroma
 from langchain.prompts import ChatPromptTemplate
-
-load_dotenv()
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-USER_AGENT = os.getenv("USER_AGENT")
-if not GOOGLE_API_KEY:
-    raise ValueError("Google API key not found!")
-os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
-os.environ["USER_AGENT"] = USER_AGENT 
 
 class Indexing:
     """
