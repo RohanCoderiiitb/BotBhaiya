@@ -16,3 +16,6 @@ if not USER_AGENT:
 
 os.environ['GOOGLE_API_KEY'] = GOOGLE_API_KEY
 os.environ['USER_AGENT'] = USER_AGENT 
+
+DEFAULT_EMBEDDING_MODEL = "models/embedding-001"
+DEFAULT_LLM_MODEL = "gemini-2.5-flash"

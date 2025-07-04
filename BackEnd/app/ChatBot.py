@@ -89,14 +89,14 @@ class Indexing:
         )
         return retriever
 
-def query_translation(query, api_key):
+def query_translation(query, api_key, my_model):
     """
     This function implements query translation - the process of modifying/ transforming user's queries to improve the effectiveness 
     of the retrieval process.
     Returns the rewritten query
     """
     llm = ChatGoogleGenerativeAI(
-        model = "gemini-2.5-flash",
+        model = my_model,
         google_api_key = api_key,
         temperature = 0.3
     )
@@ -115,10 +115,11 @@ class Generation:
     a large language model(Gemini 2.5 Flash). It enables semantic question-answering over indexed content using 
     a retriever and a generative model.
     """
-    def __init__(self, query, api_key, retriever):
+    def __init__(self, query, api_key, retriever, model):
         self.query = query
         self.api_key = api_key
         self.retriever = retriever
+        self.model = model
 
     def generate(self):
         """
@@ -126,7 +127,7 @@ class Generation:
         Returns the response generated and the sources refered to, for the answer
         """
         llm = ChatGoogleGenerativeAI(
-            model = "gemini-2.5-flash",
+            model = self.model,
             google_api_key = self.api_key,
             temperature = 0
         )
