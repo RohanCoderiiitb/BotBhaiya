@@ -52,7 +52,6 @@ async def index_docs(request: Request, index_request_data: IndexRequest):
         )
         new_retriever_instance = indexing.build_indexing()
         request.app.state.retriever_instance = new_retriever_instance
-    except Exception as e:
         print(f"[{__name__}] Indexing complete and retriever updated successfully in app.state.")
         return {"message": "Documents indexed successfully and retriever updated."}
     except ValueError as ve:
