@@ -61,3 +61,4 @@ async def index_docs(request: Request, index_request_data: IndexRequest):
     except Exception as e:
         print(f"[{__name__}] ERROR during indexing: {e}")
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred during indexing: {str(e)}")
+        
