@@ -1,10 +1,11 @@
 # This code implements a RAG pipeline to build the AI Chatbot
 
 #Importing the necessary libraries
+import os
 from langchain_community.document_loaders import PyPDFLoader, UnstructuredMarkdownLoader, WebBaseLoader, UnstructuredPowerPointLoader, UnstructuredWordDocumentLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain.prompts import ChatPromptTemplate
 
 class Indexing:
@@ -33,16 +34,18 @@ class Indexing:
             try:
                 if url.startswith("http"):
                     loader = WebBaseLoader(url)
-                elif url.endswith(".pdf"):
-                    loader = PyPDFLoader(url)
-                elif url.endswith(".md"):
-                    loader = UnstructuredMarkdownLoader(url)
-                elif url.endswith(".pptx") or url.endswith(".ppt"):
-                    loader = UnstructuredPowerPointLoader(url)
-                elif url.endswith(".docx") or url.endswith(".doc"):
-                    loader = UnstructuredWordDocumentLoader(url)
                 else:
-                    raise ValueError(f"⚠️ Unsupported file type: {url}")
+                    abs_file_path = os.path.abspath(url)
+                    if url.endswith(".pdf"):
+                        loader = PyPDFLoader(abs_file_path)
+                    elif url.endswith(".md"):
+                        loader = UnstructuredMarkdownLoader(abs_file_path)
+                    elif url.endswith(".pptx") or url.endswith(".ppt"):
+                        loader = UnstructuredPowerPointLoader(abs_file_path)
+                    elif url.endswith(".docx") or url.endswith(".doc"):
+                        loader = UnstructuredWordDocumentLoader(abs_file_path)
+                    else:
+                        raise ValueError(f"⚠️ Unsupported file type: {abs_file_path}")
                 docs = loader.load()
                 for doc in docs:
                     doc.metadata["source"] = url

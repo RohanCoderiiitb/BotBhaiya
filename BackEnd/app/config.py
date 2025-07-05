@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 USER_AGENT = os.getenv("USER_AGENT")
-PERSIST_DIRECTORY = os.getenv("PERSIST_DIR", "./app/chroma_index")
+PERSIST_DIRECTORY = os.getenv("PERSIST_DIR", "./chroma_index")
 
 if not GOOGLE_API_KEY:
     raise ValueError("Google API key not found")

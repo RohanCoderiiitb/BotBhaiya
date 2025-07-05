@@ -2,11 +2,12 @@
 # Creates the core app instances, registers all the routes and sets up essential resources
 
 # Importing necessary libraries
+import os
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from .routes import router
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,6 +18,14 @@ async def lifespan(app: FastAPI):
     Initialises RAG retriever instance on startup
     """
     print(f"[{__name__}] Application starting up..")
+    # Ensure the persist directory for ChromaDB exists
+    print(f"[app.main] Checking for persist directory: {PERSIST_DIRECTORY}")
+    
+    # ADD THIS LINE:
+    print(f"[app.main] Resolved absolute path for PERSIST_DIRECTORY: {os.path.abspath(PERSIST_DIRECTORY)}") 
+    
+    os.makedirs(PERSIST_DIRECTORY, exist_ok=True)
+    print(f"[app.main] Persist directory ensured: {PERSIST_DIRECTORY}")
     try:
         embedding_model = GoogleGenerativeAIEmbeddings(
             model = DEFAULT_EMBEDDING_MODEL,
@@ -24,7 +33,7 @@ async def lifespan(app: FastAPI):
         )
         vector_stores = Chroma(
             persist_directory = PERSIST_DIRECTORY,
-            embedding = embedding_model
+            embedding_function = embedding_model
         )
         retriever_instance = vector_stores.as_retriever(
             search_type = "mmr",
@@ -33,9 +42,8 @@ async def lifespan(app: FastAPI):
         app.state.retriever_instance = retriever_instance
         print(f"[{__name__}] RAG pipeline initialised and retriever instance saved in app.state")
     except Exception as e:
-        print(f"[{__name__}] Error during RAG pipeline initialisation")
-        print(f"[{__name__}] Ensure that {PERSIST_DIRECTORY} exists")
-        app.state.retriever_instance = None
+        print(f"[{__name__}] CRITICAL ERROR during RAG pipeline initialisation: {e}") 
+        raise 
     
     yield
 
