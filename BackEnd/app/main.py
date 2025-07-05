@@ -18,10 +18,8 @@ async def lifespan(app: FastAPI):
     Initialises RAG retriever instance on startup
     """
     print(f"[{__name__}] Application starting up..")
-    # Ensure the persist directory for ChromaDB exists
     print(f"[app.main] Checking for persist directory: {PERSIST_DIRECTORY}")
     
-    # ADD THIS LINE:
     print(f"[app.main] Resolved absolute path for PERSIST_DIRECTORY: {os.path.abspath(PERSIST_DIRECTORY)}") 
     
     os.makedirs(PERSIST_DIRECTORY, exist_ok=True)
