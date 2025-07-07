@@ -3,9 +3,13 @@
 #Importing the necessary modules
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from typing import *
+from typing import List, Dict
 from .chatbot import Indexing, Generation, query_translation
 from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL, DEFAULT_LLM_MODEL
+from .database import get_db_connection  
+from .security import hash_password, verify_password
+from .auth import create_access_token
+from datetime import timedelta
 
 router = APIRouter()
 
@@ -30,6 +34,27 @@ class ChatResponse(BaseModel):
     """
     answer: str
     sources: List[str]
+
+class UserCreate(BaseModel):
+    """
+    Schema for user registration to the application
+    """
+    username: str
+    password: str
+
+class UserLogin(BaseModel):
+    """
+    Schema for user login
+    """
+    username: str
+    password: str
+
+class Token(BaseModel):
+    """
+    Schema for authentication token respone
+    """
+    access_token: str
+    token_type: str = 'bearer'
 
 @router.post("/indexing", response_model=Dict[str, str])
 async def index_docs(request: Request, index_request_data: IndexRequest):
@@ -91,3 +116,58 @@ async def chat_with_bot(request: Request, chat_request_data: ChatRequest):
     except Exception as e:
         print(f"[{__name__}] An error occurred: {e}")
         raise HTTPException(status_code=500, detail="An error occurred")
+    
+@router.post("/signup", response_model=Dict[str, str])
+async def signup(user: UserCreate):
+    """
+    Registers a new user
+    Stores the username and password in the user table
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM users WHERE username=?", (user.username,))
+
+    if cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=400, detail="User already registered")
+    
+    hashed_password = hash_password(user.password)
+
+    try:
+        cursor.execute(
+            "INSERT INTO users (username, password_hashed) VALUES (?, ?)",
+            (user.username, hashed_password)
+        )
+        conn.commit()
+        conn.close()
+        print(f"[__name__] User {user.username} signed up successfully!")
+        return {"message": "user registered successfully"}
+    except Exception as e:
+        conn.close()
+        print(f"[__name__] Error during signup for the user {user.username}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to register user")
+    
+@router.post("/login", response_model=Token)
+async def login(user: UserLogin):
+    """
+    Facilitates user login
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username, password_hashed FROM users WHERE username = ?", (user.username,))
+    db_user = cursor.fetchone()
+    if not db_user:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    if not verify_password(user.password, db_user["password_hashed"]):
+        conn.close()
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    
+    access_token_expiry = timedelta(minutes=30)
+    conn.close()
+    access_token = create_access_token(
+        data={"sub": db_user["username"]},
+        expires_delta=access_token_expiry
+    )
+    print(f"[{__name__}] User {db_user['username']} logged in successfully. JWT issued")
+    return Token(access_token=access_token, token_type="bearer")

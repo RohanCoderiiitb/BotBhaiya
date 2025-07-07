@@ -10,6 +10,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_chroma import Chroma
 from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL
 from fastapi.middleware.cors import CORSMiddleware
+from .database import create_user_table
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,6 +18,10 @@ async def lifespan(app: FastAPI):
     Handles startup and shutdown events of application
     Initialises RAG retriever instance on startup
     """
+    print(f"[__name__] Ensuring that the user table exists")
+    create_user_table()
+    print(f"[__name__] User table ready")
+
     print(f"[{__name__}] Application starting up..")
     print(f"[app.main] Checking for persist directory: {PERSIST_DIRECTORY}")
     
