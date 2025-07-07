@@ -1,14 +1,14 @@
 # This code defines the API endpoints and the logic for handling the client requests
 
 #Importing the necessary modules
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 from typing import List, Dict
 from .chatbot import Indexing, Generation, query_translation
 from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL, DEFAULT_LLM_MODEL
 from .database import get_db_connection  
 from .security import hash_password, verify_password
-from .auth import create_access_token
+from .auth import create_access_token, get_current_user
 from datetime import timedelta
 
 router = APIRouter()
@@ -57,12 +57,13 @@ class Token(BaseModel):
     token_type: str = 'bearer'
 
 @router.post("/indexing", response_model=Dict[str, str])
-async def index_docs(request: Request, index_request_data: IndexRequest):
+async def index_docs(request: Request, index_request_data: IndexRequest, current_user: str = Depends(get_current_user)):
     """
     This is an endpoint to trigger document indexing.
     Expects a list of URLs in the request body
     This action will (re)build or update the knowledge base
     """
+    print(f"[__name__] Indexing request by Authenticated User: {current_user}")
     retriever_instance = request.app.state.retriever_instance
     if not index_request_data.urls:
         raise HTTPException(status_code=400, detail="No URL(s) provided for indexing")
@@ -88,12 +89,13 @@ async def index_docs(request: Request, index_request_data: IndexRequest):
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred during indexing: {str(e)}")
     
 @router.post("/chat", response_model=ChatResponse)
-async def chat_with_bot(request: Request, chat_request_data: ChatRequest):
+async def chat_with_bot(request: Request, chat_request_data: ChatRequest, current_user: str = Depends(get_current_user)):
     """
     This is the endpoint for chatting with the bot
     Expects a single user query
     Returns an answer(str) and list of sources
     """
+    print(f"[__name__] Chat request by authenticated user: {current_user}")
     retriever_instance = request.app.state.retriever_instance
     if retriever_instance is None:
         raise HTTPException(status_code=503, detail="Retriever has not been initialised")

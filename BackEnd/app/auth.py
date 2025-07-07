@@ -3,8 +3,14 @@
 # Importing necessary libraries
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-import jwt
+import jwt 
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from .config import SECRET_KEY, ALGORITHM
+from fastapi import HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordBearer
+from .database import get_db_connection
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """
@@ -19,3 +25,52 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire}) 
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def decode_access_token(token: str):
+    """
+    Decodes a JWT access token and verifies its signature and expiration
+    Returns a dictionary, the decoded token payload
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Couldn't validate the credentials",
+            headers={"WWW-Authenticate":"Bearer"}
+            )
+        return payload
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate":"Bearer"}
+        )
+    except InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+            headers={"WWW-Authenticate":"Bearer"}
+        )
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    """
+    Obtains the current user from JWT
+    """
+    payload = decode_access_token(token)
+    username: str = payload.get("sub")
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Couldn't validate the credentials",
+            headers={"WWW-Authenticate":"Bearer"}
+        )
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username FROM users WHERE username = ?", (username,))
+    user_db = cursor.fetchone()
+    if not user_db:
+        conn.close()
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    return user_db['username']
