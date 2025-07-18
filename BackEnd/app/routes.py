@@ -1,15 +1,20 @@
 # This code defines the API endpoints and the logic for handling the client requests
 
 #Importing the necessary modules
-from fastapi import APIRouter, HTTPException, Request, Depends
+import os
+from fastapi import APIRouter, HTTPException, Request, Depends, status
 from pydantic import BaseModel
-from typing import List, Dict
-from .chatbot import Indexing, Generation, query_translation
+from typing import List, Dict, Optional
+from .chatbot import Indexing, Generation
 from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL, DEFAULT_LLM_MODEL
 from .database import get_db_connection  
 from .security import hash_password, verify_password
 from .auth import create_access_token, get_current_user
 from datetime import timedelta
+import uuid
+from langchain_community.chat_message_histories import SQLChatMessageHistory
+from langchain.memory import ConversationBufferWindowMemory
+from sqlalchemy import create_engine
 
 router = APIRouter()
 
@@ -26,6 +31,7 @@ class ChatRequest(BaseModel):
     Expects a single query string from the user
     """
     query: str
+    session_id: Optional[str] = None
 
 class ChatResponse(BaseModel):
     """
@@ -89,32 +95,70 @@ async def index_docs(request: Request, index_request_data: IndexRequest, current
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred during indexing: {str(e)}")
     
 @router.post("/chat", response_model=ChatResponse)
-async def chat_with_bot(request: Request, chat_request_data: ChatRequest, current_user: str = Depends(get_current_user)):
+async def chat_with_bot(request: Request, chat_request_data: ChatRequest, current_user_username: str = Depends(get_current_user)):
     """
     This is the endpoint for chatting with the bot
     Expects a single user query
     Returns an answer(str) and list of sources
     """
-    print(f"[__name__] Chat request by authenticated user: {current_user}")
+    print(f"[{__name__}] Chat request received with body: {chat_request_data}")
+    print(f"[{__name__}] Authenticated user from dependency: {current_user_username}")
     retriever_instance = request.app.state.retriever_instance
     if retriever_instance is None:
-        raise HTTPException(status_code=503, detail="Retriever has not been initialised")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Retriever has not been initialized")
     
     user_query = chat_request_data.query
-    print(f"[{__name__}] Received query: {user_query}")
+    print(f"[{__name__}] Processing query: {user_query}")
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM users where username=?", (current_user_username,))
+    user_db = cursor.fetchone()
+    print(f"[{__name__}] Database query result: {user_db}")
+    conn.close()
+    
+    if not user_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Authenticated user not found")
+    user_id = user_db['id']
+
+    session_id = chat_request_data.session_id
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        print(f"[{__name__}] New chat session started for {current_user_username}: {session_id}")
+    else:
+        print(f"[{__name__}] Continuing chat session {session_id} for {current_user_username}")
+
+    db_path_absolute = os.path.abspath(os.path.join(os.path.dirname(__file__), "Users.db"))
+    engine = create_engine(f"sqlite:///{db_path_absolute}")
+
+    print(SQLChatMessageHistory.__init__)
+
+    message_history = SQLChatMessageHistory(
+        session_id=f"{user_id}_{session_id}",
+        connection=engine,
+        table_name="chat_history",
+        session_id_field_name="session_id"
+    )
+
+    conversational_memory = ConversationBufferWindowMemory(
+        k=5,
+        chat_memory=message_history,
+        memory_key="chat_history",
+        return_messages=True
+    )
 
     try:
-        rewritten_query = query_translation(user_query, GOOGLE_API_KEY, DEFAULT_LLM_MODEL)
         generator = Generation(
-            query = rewritten_query,
+            query = user_query,
             api_key = GOOGLE_API_KEY,
-            retriever = retriever_instance,
-            model = DEFAULT_LLM_MODEL
+            retriever = retriever_instance, 
+            model = DEFAULT_LLM_MODEL,
+            memory=conversational_memory
         )
         answer, sources = generator.generate()
         print(f"[{__name__}] Generated answer: {answer}")
         print(f"[{__name__}] Sources: {list(sources)}")
-        return ChatResponse(answer = answer, sources = list(sources))
+        return ChatResponse(answer = answer, sources = list(sources), session_id = session_id)
     except Exception as e:
         print(f"[{__name__}] An error occurred: {e}")
         raise HTTPException(status_code=500, detail="An error occurred")
@@ -137,7 +181,7 @@ async def signup(user: UserCreate):
 
     try:
         cursor.execute(
-            "INSERT INTO users (username, password_hashed) VALUES (?, ?)",
+            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
             (user.username, hashed_password)
         )
         conn.commit()
@@ -156,12 +200,12 @@ async def login(user: UserLogin):
     """
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, username, password_hashed FROM users WHERE username = ?", (user.username,))
+    cursor.execute("SELECT id, username, password_hash FROM users WHERE username = ?", (user.username,))
     db_user = cursor.fetchone()
     if not db_user:
         conn.close()
         raise HTTPException(status_code=400, detail="Incorrect username or password")
-    if not verify_password(user.password, db_user["password_hashed"]):
+    if not verify_password(user.password, db_user["password_hash"]):
         conn.close()
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     

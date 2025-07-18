@@ -10,6 +10,8 @@ USER_AGENT = os.getenv("USER_AGENT")
 PERSIST_DIRECTORY = os.getenv("PERSIST_DIR", "./chroma_index")
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM") 
+DEFAULT_EMBEDDING_MODEL = "models/embedding-001"
+DEFAULT_LLM_MODEL = "gemini-2.5-flash"
 
 if not GOOGLE_API_KEY:
     raise ValueError("Google API key not found")
@@ -20,6 +22,3 @@ if not SECRET_KEY:
 
 os.environ['GOOGLE_API_KEY'] = GOOGLE_API_KEY
 os.environ['USER_AGENT'] = USER_AGENT 
-
-DEFAULT_EMBEDDING_MODEL = "models/embedding-001"
-DEFAULT_LLM_MODEL = "gemini-2.5-flash"

@@ -10,7 +10,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_chroma import Chroma
 from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL
 from fastapi.middleware.cors import CORSMiddleware
-from .database import create_user_table
+from .database import create_user_table, create_chat_history_table
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,6 +21,10 @@ async def lifespan(app: FastAPI):
     print(f"[__name__] Ensuring that the user table exists")
     create_user_table()
     print(f"[__name__] User table ready")
+
+    print(f"[__name__] Ensuring that chat history table exists")
+    create_chat_history_table()
+    print(f"[__name__] Chat history table ready")
 
     print(f"[{__name__}] Application starting up..")
     print(f"[app.main] Checking for persist directory: {PERSIST_DIRECTORY}")
@@ -61,7 +65,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = ["http://localhost","http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:8000"],
+    allow_origins = ["http://localhost","http://localhost:5173", "http://localhost:5174"],
     allow_credentials = True,
     allow_methods = ["*"],
     allow_headers = ["*"]

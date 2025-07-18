@@ -1,12 +1,18 @@
-# This code implements a RAG pipeline to build the AI Chatbot
+# backend/app/chatbot.py
 
-#Importing the necessary libraries
+# Importing necessary libraries
 import os
-from langchain_community.document_loaders import PyPDFLoader, UnstructuredMarkdownLoader, WebBaseLoader, UnstructuredPowerPointLoader, UnstructuredWordDocumentLoader
+from typing import Set, Tuple, Any # Added Any for type hinting
+from langchain_community.document_loaders import PyPDFLoader, UnstructuredMarkdownLoader, WebBaseLoader, UnstructuredPowerPointLoader, UnstructuredWordDocumentLoader, TextLoader # Ensure TextLoader is imported
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_chroma import Chroma
-from langchain.prompts import ChatPromptTemplate
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.memory import BaseMemory 
+from langchain_core.messages import HumanMessage, AIMessage
+from langchain.chains import create_history_aware_retriever, create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL, DEFAULT_LLM_MODEL
 
 class Indexing:
     """
@@ -14,13 +20,17 @@ class Indexing:
     and storing them in a Chroma vector database using Google Generative AI embeddings. It builds a 
     retriever for efficient semantic search over the indexed document chunks.
     """
-    def __init__(self, urls, persist_dir, embeddingmodel, api_key, chunk_size=1000, chunk_overlap=200):
+    def __init__(self, urls: list, persist_dir: str, embeddingmodel: str, api_key: str, chunk_size: int = 1000, chunk_overlap: int = 200): # Added type hints
         self.urls = urls
         self.persist_dir = persist_dir
         self.embeddingmodel = embeddingmodel
         self.api_key = api_key
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
+        
+        self.embedding_model_instance = GoogleGenerativeAIEmbeddings(model=self.embeddingmodel, google_api_key=self.api_key)
+        self.vector_store = Chroma(persist_directory=self.persist_dir, embedding_function=self.embedding_model_instance)
+
 
     def load_documents(self):
         """
@@ -33,25 +43,34 @@ class Indexing:
         for url in self.urls:
             try:
                 if url.startswith("http"):
+                    print(f"[{__name__}] Loading web document from: {url}")
                     loader = WebBaseLoader(url)
                 else:
                     abs_file_path = os.path.abspath(url)
                     if url.endswith(".pdf"):
+                        print(f"[{__name__}] Loading local PDF document from: {abs_file_path}")
                         loader = PyPDFLoader(abs_file_path)
                     elif url.endswith(".md"):
+                        print(f"[{__name__}] Loading local Markdown document from: {abs_file_path}")
                         loader = UnstructuredMarkdownLoader(abs_file_path)
                     elif url.endswith(".pptx") or url.endswith(".ppt"):
+                        print(f"[{__name__}] Loading local PowerPoint document from: {abs_file_path}")
                         loader = UnstructuredPowerPointLoader(abs_file_path)
                     elif url.endswith(".docx") or url.endswith(".doc"):
+                        print(f"[{__name__}] Loading local Word document from: {abs_file_path}")
                         loader = UnstructuredWordDocumentLoader(abs_file_path)
+                    elif url.endswith(".txt"): 
+                        print(f"[{__name__}] Loading local Text document from: {abs_file_path}")
+                        loader = TextLoader(abs_file_path)
                     else:
                         raise ValueError(f"⚠️ Unsupported file type: {abs_file_path}")
                 docs = loader.load()
                 for doc in docs:
                     doc.metadata["source"] = url
                 all_docs.extend(docs)
+                print(f"[{__name__}] Successfully loaded: {url}")
             except Exception as e:
-                print(f"Failed to load {url}: {e}")
+                print(f"[{__name__}] Failed to load {url}: {e}")
         if not all_docs:
             raise RuntimeError("❌ No documents were successfully loaded")
         return all_docs
@@ -70,47 +89,33 @@ class Indexing:
     
     def embedd_and_store(self, splits):
         """
-        Embeds and stores the given chunks of documents into a persistent vector database using Chroma
-        A Chroma vector store instance containing the embedded documents, persisted to disk.
+        Embeds and stores the given chunks of documents into a persistent vector database using Chroma.
+        This method ADDS documents to the existing vector store.
         """
-        embedding_model = GoogleGenerativeAIEmbeddings(model=self.embeddingmodel, google_api_key=self.api_key)
-        vector_stores = Chroma.from_documents(documents=splits, embedding=embedding_model, persist_directory=self.persist_dir)
-        vector_stores.persist()
-        return vector_stores
+        print(f"[{__name__}] Adding {len(splits)} chunks to ChromaDB...")
+        self.vector_store.add_documents(documents=splits) 
+        self.vector_store.persist()
+        print(f"[{__name__}] Chunks added and persisted.")
     
     def build_indexing(self):
         """
-        Initiates the indexing process and builds a retriever for semantic search
-        Returns an instance of the retriever class used to perform similarity-based searches over the embedded document chunks
+        Initiates the indexing process and builds a retriever for semantic search.
+        Returns an instance of the retriever class used to perform similarity-based searches over the embedded document chunks.
         """
+        print(f"[{__name__}] Starting document indexing process...")
         docs = self.load_documents()
+        print(f"[{__name__}] Splitting {len(docs)} documents into chunks...")
         splits = self.document_splitter(docs)
-        vector_stores = self.embedd_and_store(splits)
-        retriever = vector_stores.as_retriever(
+        print(f"[{__name__}] Created {len(splits)} chunks.")
+
+        self.embedd_and_store(splits) 
+        
+        retriever = self.vector_store.as_retriever( 
             search_type = "mmr",
             search_kwargs = {"k":10}
         )
+        print(f"[{__name__}] Indexing complete. Retriever ready.")
         return retriever
-
-def query_translation(query, api_key, my_model):
-    """
-    This function implements query translation - the process of modifying/ transforming user's queries to improve the effectiveness 
-    of the retrieval process.
-    Returns the rewritten query
-    """
-    llm = ChatGoogleGenerativeAI(
-        model = my_model,
-        google_api_key = api_key,
-        temperature = 0.3
-    )
-
-    template = """You are a helpful AI assistant who rewrites user's queries to improve document retrieval
-                  Original question: {query}
-                  Rewritten retrieval query:"""
-    prompt = ChatPromptTemplate.from_template(template)
-    formatted_prompt = prompt.invoke({"query":query})
-    formatted_query = llm.invoke(formatted_prompt).content.strip()
-    return formatted_query 
 
 class Generation:
     """
@@ -118,37 +123,80 @@ class Generation:
     a large language model(Gemini 2.5 Flash). It enables semantic question-answering over indexed content using 
     a retriever and a generative model.
     """
-    def __init__(self, query, api_key, retriever, model):
+    def __init__(self, query, api_key, retriever, model, memory: BaseMemory):
+        """
+        Initializes the Generation class.
+
+        Args:
+            query (str): The current user query.
+            api_key (str): Google API key for the LLM.
+            retriever (Any): The LangChain retriever instance (from ChromaDB).
+            model (str): The LLM model to use.
+            memory (BaseMemory): A pre-configured LangChain memory object (e.g., ConversationBufferWindowMemory).
+        """
         self.query = query
         self.api_key = api_key
         self.retriever = retriever
         self.model = model
+        self.memory = memory
+
+        self.llm = ChatGoogleGenerativeAI(
+            model = self.model,
+            temperature = 0,
+            google_api_key = self.api_key
+        )
+
+        contextualize_q_system_prompt = """Given a chat history and the latest user question \
+        which might reference context in the chat history, formulate a standalone question \
+        which can be understood without the chat history. Do NOT answer the question, \
+        just reformulate it if necessary and otherwise return it as is."""
+
+        contextualize_q_prompt = ChatPromptTemplate.from_messages(
+            [("system", contextualize_q_system_prompt),
+             MessagesPlaceholder("chat_history"),
+             ("human", "{input}")
+            ]
+        )
+        self.history_aware_retriever = create_history_aware_retriever(
+            self.llm, self.retriever, contextualize_q_prompt
+        )
+
+        qa_system_prompt = """You are an assistant for question-answering tasks for IIITB Freshers. \
+        Use the following retrieved context and chat history to answer the question. \
+        If you don't know the answer, just say that you don't know. \
+        Keep the answer concise and to the point.
+        {context}"""
+
+        qa_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", qa_system_prompt),
+                MessagesPlaceholder("chat_history"),
+                ("human", "{input}"),
+            ]
+        )
+
+        self.document_chain = create_stuff_documents_chain(self.llm, qa_prompt)
+        self.rag_chain = create_retrieval_chain(self.history_aware_retriever, self.document_chain)
 
     def generate(self):
         """
         Generates response by retrieving the relevant document chunks and passing them to the LLM.
         Returns the response generated and the sources refered to, for the answer
         """
-        llm = ChatGoogleGenerativeAI(
-            model = self.model,
-            google_api_key = self.api_key,
-            temperature = 0
-        )
+        
+        chat_history_messages = self.memory.load_memory_variables({})["chat_history"]
 
-        template = """You are a helpful and knowledgeable AI assistant.
-                      Use only the information provided in the context 
-                      to respond accurately and concisely to the input question or request.
-                      The context exclusively pertains to IIIT Bangalore (IIITB). 
-                      If the context does not include enough information, politely indicate that.
+        response = self.rag_chain.invoke({
+            "input": self.query,
+            "chat_history": chat_history_messages
+        })
 
-                      Context:{context}
-                      User query:{query}
-                    """
-        prompt = ChatPromptTemplate.from_template(template)
-
-        retrieved_docs = self.retriever.invoke(self.query)
-        context = "\n\n".join(doc.page_content for doc in retrieved_docs)
-        formatted_prompt = prompt.invoke({"query":self.query, "context":context})
-        answer = llm.invoke(formatted_prompt)
-        sources = set(doc.metadata.get("source", "Unknown source") for doc in retrieved_docs)
-        return answer.content, sources 
+        answer = response["answer"]
+        sources = set()
+        if "context" in response:
+            for doc in response["context"]:
+                if doc.metadata and "source" in doc.metadata:
+                    sources.add(doc.metadata["source"])
+            
+        self.memory.save_context({"input":self.query}, {"output":answer})
+        return answer, sources

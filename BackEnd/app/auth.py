@@ -7,10 +7,10 @@ import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from .config import SECRET_KEY, ALGORITHM
 from fastapi import HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .database import get_db_connection
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = HTTPBearer()
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """
@@ -32,6 +32,9 @@ def decode_access_token(token: str):
     Returns a dictionary, the decoded token payload
     """
     try:
+        if token.startswith("Bearer"):
+            token = token.split("Bearer ")[-1]
+
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
@@ -54,11 +57,11 @@ def decode_access_token(token: str):
             headers={"WWW-Authenticate":"Bearer"}
         )
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: HTTPAuthorizationCredentials = Depends(oauth2_scheme)):
     """
     Obtains the current user from JWT
     """
-    payload = decode_access_token(token)
+    payload = decode_access_token(token.credentials)
     username: str = payload.get("sub")
     if username is None:
         raise HTTPException(

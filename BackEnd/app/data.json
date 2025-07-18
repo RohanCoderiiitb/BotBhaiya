@@ -1,19 +1,19 @@
 {
   "documents": [
-    "./Data/BTechCSE.md",
-    "./Data/BTechCSE.pdf",
-    "./Data/BTechDSAI.md",
-    "./Data/BTechECE.md",
-    "./Data/BTechECE.pdf",
-    "./Data/FacultyContacts.md",
-    "./Data/IMTechCSE.md",
-    "./Data/IMTechECE.md",
-    "./Data/IMtechECE.pdf",
-    "./Data/MSR.pdf",
-    "./Data/MTechAIDS.md",
-    "./Data/MTechCSE.md",
-    "./Data/OtherContacts.md",
-    "./Data/Placement.md",
-    "./Data/SquareOneBrochure.pdf"
+    "./app/Data/BTechCSE.md",
+    "./app/Data/BTechCSE.pdf",
+    "./app/Data/BTechDSAI.md",
+    "./app/Data/BTechECE.md",
+    "./app/Data/BTechECE.pdf",
+    "./app/Data/FacultyContacts.md",
+    "./app/Data/IMTechCSE.md",
+    "./app/Data/IMTechECE.md",
+    "./app/Data/IMtechECE.pdf",
+    "./app/Data/MSR.pdf",
+    "./app/Data/MTechAIDS.md",
+    "./app/Data/MTechCSE.md",
+    "./app/Data/OtherContacts.md",
+    "./app/Data/Placement.md",
+    "./app/Data/SquareOneBrochure.pdf"
   ]
 }
