@@ -7,6 +7,7 @@ from langchain_community.document_loaders import PyPDFLoader, UnstructuredMarkdo
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_chroma import Chroma
+from chromadb import PersistentClient
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.memory import BaseMemory 
 from langchain_core.messages import HumanMessage, AIMessage
@@ -20,14 +21,13 @@ class Indexing:
     and storing them in a Chroma vector database using Google Generative AI embeddings. It builds a 
     retriever for efficient semantic search over the indexed document chunks.
     """
-    def __init__(self, urls: list, persist_dir: str, embeddingmodel: str, api_key: str, chunk_size: int = 1000, chunk_overlap: int = 200): # Added type hints
+    def __init__(self, urls: list, persist_dir: str, embeddingmodel: str, api_key: str, chunk_size: int = 2000, chunk_overlap: int = 400): # Added type hints
         self.urls = urls
         self.persist_dir = persist_dir
         self.embeddingmodel = embeddingmodel
         self.api_key = api_key
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        
         self.embedding_model_instance = GoogleGenerativeAIEmbeddings(model=self.embeddingmodel, google_api_key=self.api_key)
         self.vector_store = Chroma(persist_directory=self.persist_dir, embedding_function=self.embedding_model_instance)
 
@@ -87,14 +87,13 @@ class Indexing:
         splits = splitter.split_documents(docs)
         return splits
     
-    def embedd_and_store(self, splits):
+    def embed_and_store(self, splits):
         """
         Embeds and stores the given chunks of documents into a persistent vector database using Chroma.
         This method ADDS documents to the existing vector store.
         """
         print(f"[{__name__}] Adding {len(splits)} chunks to ChromaDB...")
         self.vector_store.add_documents(documents=splits) 
-        self.vector_store.persist()
         print(f"[{__name__}] Chunks added and persisted.")
     
     def build_indexing(self):
@@ -108,7 +107,7 @@ class Indexing:
         splits = self.document_splitter(docs)
         print(f"[{__name__}] Created {len(splits)} chunks.")
 
-        self.embedd_and_store(splits) 
+        self.embed_and_store(splits) 
         
         retriever = self.vector_store.as_retriever( 
             search_type = "mmr",
