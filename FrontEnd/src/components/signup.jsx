@@ -1,3 +1,5 @@
+/* Sign up component */
+
 import React, { useState } from "react";
 import { Button, Checkbox, Label, TextInput } from "flowbite-react";
 import { HiMail, HiLockClosed, HiUser } from "react-icons/hi";
@@ -40,7 +42,6 @@ const Signup = () => {
         throw new Error(data.detail || "Failed to register user");
       }
 
-      // Success case
       setSuccess(data.message || "User registered successfully");
       setUsername("");
       setPassword("");
