@@ -11,6 +11,8 @@ from langchain_chroma import Chroma
 from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL
 from fastapi.middleware.cors import CORSMiddleware
 from .database import create_user_table, create_chat_history_table
+from starlette.middleware.sessions import SessionMiddleware
+import secrets
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -70,6 +72,8 @@ app.add_middleware(
     allow_methods = ["*"],
     allow_headers = ["*"]
 )
+
+app.add_middleware(SessionMiddleware, secret_key=secrets.token_hex(32));
 
 app.include_router(router)
 

@@ -15,6 +15,9 @@ import uuid
 from langchain_community.chat_message_histories import SQLChatMessageHistory
 from langchain.memory import ConversationBufferWindowMemory
 from sqlalchemy import create_engine
+from fastapi.responses import RedirectResponse
+from starlette.requests import Request as StarletteRequest
+from .google_oauth import oauth
 
 router = APIRouter()
 
@@ -217,3 +220,38 @@ async def login(user: UserLogin):
     )
     print(f"[{__name__}] User {db_user['username']} logged in successfully. JWT issued")
     return Token(access_token=access_token, token_type="bearer")
+
+@router.get("/auth/google/login")
+async def google_login(request: StarletteRequest):
+    redirect_uri = "http://localhost:8000/auth/google/callback"
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+@router.get("/auth/google/callback")
+async def google_callback(request: StarletteRequest):
+    token = await oauth.google.authorize_access_token(request)
+    user_info = await oauth.google.userinfo(token=token)
+    
+    username = user_info.get("email")
+    if not username:
+        raise HTTPException(status_code=400, detail="Google login failed")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+    user = cursor.fetchone()
+
+    if not user:
+        hashed_pw = hash_password("google-oauth")
+        cursor.execute(
+            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+            (username, hashed_pw)
+        )
+        conn.commit()
+
+    conn.close()
+
+    # Generate JWT
+    access_token = create_access_token({"sub": username})
+    
+    redirect_url = f"http://localhost:5173/auth/google/success?token={access_token}"
+    return RedirectResponse(url=redirect_url)
