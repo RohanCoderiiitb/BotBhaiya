@@ -32,7 +32,7 @@ const UserSignup = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:8000/signup", {
+      const response = await fetch("http://localhost:8000/usersignup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

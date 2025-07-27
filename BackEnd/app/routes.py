@@ -18,6 +18,7 @@ from sqlalchemy import create_engine
 from fastapi.responses import RedirectResponse
 from starlette.requests import Request as StarletteRequest
 from .google_oauth import oauth
+from dotenv import load_dotenv
 
 router = APIRouter()
 
@@ -64,6 +65,13 @@ class Token(BaseModel):
     """
     access_token: str
     token_type: str = 'bearer'
+
+class AdminLogin(BaseModel):
+    """
+    Schema for admin login
+    """
+    username: str
+    password: str
 
 @router.post("/indexing", response_model=Dict[str, str])
 async def index_docs(request: Request, index_request_data: IndexRequest, current_user: str = Depends(get_current_user)):
@@ -166,7 +174,7 @@ async def chat_with_bot(request: Request, chat_request_data: ChatRequest, curren
         print(f"[{__name__}] An error occurred: {e}")
         raise HTTPException(status_code=500, detail="An error occurred")
     
-@router.post("/signup", response_model=Dict[str, str])
+@router.post("/usersignup", response_model=Dict[str, str])
 async def signup(user: UserCreate):
     """
     Registers a new user
@@ -196,7 +204,7 @@ async def signup(user: UserCreate):
         print(f"[__name__] Error during signup for the user {user.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to register user")
     
-@router.post("/login", response_model=Token)
+@router.post("/userlogin", response_model=Token)
 async def login(user: UserLogin):
     """
     Facilitates user login
@@ -221,6 +229,25 @@ async def login(user: UserLogin):
     print(f"[{__name__}] User {db_user['username']} logged in successfully. JWT issued")
     return Token(access_token=access_token, token_type="bearer")
 
+@router.post("/adminlogin", response_model=Token)
+async def admin_login(admin: AdminLogin):
+    """
+    Facilitates admin login
+    """
+    load_dotenv()
+    admin_uname = os.getenv("ADMIN_USERNAME")
+    admin_pword = os.getenv("ADMIN_PASSWORD")
+    if admin.username!=admin_uname or admin.password != admin_pword:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    access_token_expiry = timedelta(minutes=30)
+    access_token = create_access_token(
+        data={"sub": admin_uname},
+        expires_delta=access_token_expiry
+    )
+    print(f"[{__name__}] User {admin_uname} logged in successfully. JWT issued")
+    return Token(access_token=access_token, token_type="bearer")
+    
+
 @router.get("/auth/google/login")
 async def google_login(request: StarletteRequest):
     redirect_uri = "http://localhost:8000/auth/google/callback"
@@ -228,30 +255,50 @@ async def google_login(request: StarletteRequest):
 
 @router.get("/auth/google/callback")
 async def google_callback(request: StarletteRequest):
-    token = await oauth.google.authorize_access_token(request)
-    user_info = await oauth.google.userinfo(token=token)
-    
-    username = user_info.get("email")
-    if not username:
-        raise HTTPException(status_code=400, detail="Google login failed")
+    try:
+        print("[google_callback] Received callback request")
+        
+        token = await oauth.google.authorize_access_token(request)
+        print(f"[google_callback] Access token received: {token}")
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
-    user = cursor.fetchone()
+        user_info = await oauth.google.userinfo(token=token)
+        print(f"[google_callback] Google user info: {user_info}")
 
-    if not user:
-        hashed_pw = hash_password("google-oauth")
-        cursor.execute(
-            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
-            (username, hashed_pw)
-        )
-        conn.commit()
+        username = user_info.get("email")
+        if not username:
+            print("[google_callback] ERROR: Email not found in user info")
+            raise HTTPException(status_code=400, detail="Google login failed")
 
-    conn.close()
+        print(f"[google_callback] User email extracted: {username}")
 
-    # Generate JWT
-    access_token = create_access_token({"sub": username})
-    
-    redirect_url = f"http://localhost:5173/auth/google/success?token={access_token}"
-    return RedirectResponse(url=redirect_url)
+        # Check if user already exists
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+        user = cursor.fetchone()
+
+        if not user:
+            print(f"[google_callback] New user. Inserting {username} into users table.")
+            hashed_pw = hash_password("google-oauth")
+            cursor.execute(
+                "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+                (username, hashed_pw)
+            )
+            conn.commit()
+        else:
+            print(f"[google_callback] Existing user found in DB: {username}")
+
+        conn.close()
+
+        # Generate JWT token
+        access_token = create_access_token({"sub": username})
+        print(f"[google_callback] JWT generated for user {username}")
+
+        redirect_url = f"http://localhost:5173/auth/google/success?token={access_token}"
+        print(f"[google_callback] Redirecting user to: {redirect_url}")
+
+        return RedirectResponse(url=redirect_url, status_code=302)
+
+    except Exception as e:
+        print(f"[google_callback] ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail="Google login failed")

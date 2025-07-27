@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from .routes import router
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_chroma import Chroma
-from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL
+from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL, SECRET_KEY
 from fastapi.middleware.cors import CORSMiddleware
 from .database import create_user_table, create_chat_history_table
 from starlette.middleware.sessions import SessionMiddleware
@@ -73,7 +73,7 @@ app.add_middleware(
     allow_headers = ["*"]
 )
 
-app.add_middleware(SessionMiddleware, secret_key=secrets.token_hex(32));
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 app.include_router(router)
 

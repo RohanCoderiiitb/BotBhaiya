@@ -3,19 +3,17 @@ import { Button, Label, TextInput } from "flowbite-react";
 import { FaGoogle, FaEnvelope, FaLock } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-const UserLogin = () => {
+const AdminLogin = () => {
 
     const navigate = useNavigate();
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
-        setSuccess("");
 
         const payload = {
             username,
@@ -23,7 +21,7 @@ const UserLogin = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:8000/userlogin", {
+            const response = await fetch("http://localhost:8000/adminlogin", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -34,13 +32,12 @@ const UserLogin = () => {
             const data = await response.json()
 
             if (!response.ok) {
-                throw new Error(data.detail || "Failed to login user");
+                throw new Error(data.detail || "Failed to login admin");
             }
-            setSuccess(data.message || "User logged in successfully");
             localStorage.setItem("token", data.access_token);
             setUsername("");
             setPassword("");
-            navigate("/chat");
+            navigate("/");
         } catch (err) {
             setError(err.message);
         }
@@ -54,16 +51,6 @@ const UserLogin = () => {
                     <p>Sign in to your account</p>
                 </div>
 
-                <button type="button" className="google-button" 
-                onClick={()=>window.location.href = "http://localhost:8000/auth/google/login"}>
-                    <FaGoogle className="icon" />
-                    Continue with Google
-                </button>
-
-                <div className="divider">
-                    <span>OR CONTINUE WITH</span>
-                </div>
-
                 <div>
                     <div className="mb-2 block">
                         <Label htmlFor="username">Username</Label>
@@ -71,7 +58,7 @@ const UserLogin = () => {
                     <TextInput
                         id="username"
                         type="text"
-                        placeholder="Enter your username"
+                        placeholder="Enter username"
                         required
                         shadow
                         addon={<FaEnvelope className="h-5 w-5 text-gray-400" />}
@@ -88,7 +75,7 @@ const UserLogin = () => {
                     <TextInput
                         id="password"
                         type="password"
-                        placeholder="Enter your password"
+                        placeholder="Enter password"
                         required
                         shadow
                         addon={<FaLock className="h-5 w-5 text-gray-400" />}
@@ -99,13 +86,9 @@ const UserLogin = () => {
                 </div>
                 {error && <p className="helper-text text-red-500">{error}</p>}
                 <Button type="submit">Sign in</Button>
-
-                <p className="footer-text">
-                    Don’t have an account? <a href="/usersignup" className="text-cyan-400 hover:underline">Sign up</a>
-                </p>
             </form>
         </div>
     );
 };
 
-export default UserLogin;
+export default AdminLogin;
