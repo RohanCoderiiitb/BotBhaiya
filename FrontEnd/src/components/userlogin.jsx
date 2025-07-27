@@ -101,7 +101,7 @@ const UserLogin = () => {
                 <Button type="submit">Sign in</Button>
 
                 <p className="footer-text">
-                    Don’t have an account? <a href="/signup" className="text-cyan-400 hover:underline">Sign up</a>
+                    Don’t have an account? <a href="/usersignup" className="text-cyan-400 hover:underline">Sign up</a>
                 </p>
             </form>
         </div>

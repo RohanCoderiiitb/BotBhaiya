@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import LandingPage from './components/landingpage';
 import UserSignup from './components/usersignup';
 import UserLogin from './components/userlogin';
 import GoogleSuccess from './components/googlesuccess';
@@ -8,8 +9,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/signup" element={<UserSignup />} />
-        <Route path="/login" element={<UserLogin/>} />
+        <Route path="/" element={<LandingPage/>}/>
+        <Route path="/usersignup" element={<UserSignup />} />
+        <Route path="/userlogin" element={<UserLogin/>} />
         <Route path="/auth/google/success" element={<GoogleSuccess/>}/>
       </Routes>
     </BrowserRouter>
