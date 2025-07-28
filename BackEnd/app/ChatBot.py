@@ -110,7 +110,7 @@ class Indexing:
         self.embed_and_store(splits) 
         
         retriever = self.vector_store.as_retriever( 
-            search_type = "mmr",
+            search_type = "similarity",
             search_kwargs = {"k":10}
         )
         print(f"[{__name__}] Indexing complete. Retriever ready.")
@@ -160,11 +160,16 @@ class Generation:
             self.llm, self.retriever, contextualize_q_prompt
         )
 
-        qa_system_prompt = """You are an assistant for question-answering tasks for IIITB Freshers. \
-        Use the following retrieved context and chat history to answer the question. \
-        If you don't know the answer, just say that you don't know. \
-        Keep the answer concise and to the point.
-        {context}"""
+        qa_system_prompt = """You are BotBhaiya, a helpful, friendly, and accurate assistant designed to guide new students joining IIITB. 
+
+Your goal is to provide clear, reliable, and concise answers based only on the retrieved documents and chat history. 
+Be conversational, welcoming, and avoid generic or speculative responses.
+
+If you’re not sure about something or it’s not in the provided context, say “I’m not sure about that — you might want to ask a senior or refer to the sources attached below!”
+
+Use bullet points or short sentences for clarity if helpful.
+
+{context}"""
 
         qa_prompt = ChatPromptTemplate.from_messages(
             [
