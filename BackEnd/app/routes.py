@@ -9,7 +9,7 @@ from .chatbot import Indexing, Generation
 from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL, DEFAULT_LLM_MODEL
 from .database import get_db_connection  
 from .security import hash_password, verify_password
-from .auth import create_access_token, get_current_user
+from .auth import create_access_token, get_current_user, get_admin
 from datetime import timedelta
 import uuid
 from langchain_community.chat_message_histories import SQLChatMessageHistory
@@ -74,13 +74,13 @@ class AdminLogin(BaseModel):
     password: str
 
 @router.post("/indexing", response_model=Dict[str, str])
-async def index_docs(request: Request, index_request_data: IndexRequest, current_user: str = Depends(get_current_user)):
+async def index_docs(request: Request, index_request_data: IndexRequest, admin_user: str = Depends(get_admin)):
     """
     This is an endpoint to trigger document indexing.
     Expects a list of URLs in the request body
     This action will (re)build or update the knowledge base
     """
-    print(f"[__name__] Indexing request by Authenticated User: {current_user}")
+    print(f"[__name__] Indexing request by Authenticated User: {admin_user}")
     retriever_instance = request.app.state.retriever_instance
     if not index_request_data.urls:
         raise HTTPException(status_code=400, detail="No URL(s) provided for indexing")

@@ -110,7 +110,7 @@ class Indexing:
         self.embed_and_store(splits) 
         
         retriever = self.vector_store.as_retriever( 
-            search_type = "similarity",
+            search_type = "mmr",
             search_kwargs = {"k":10}
         )
         print(f"[{__name__}] Indexing complete. Retriever ready.")

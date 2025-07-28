@@ -9,6 +9,8 @@ from .config import SECRET_KEY, ALGORITHM
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .database import get_db_connection
+from dotenv import load_dotenv
+import os 
 
 oauth2_scheme = HTTPBearer()
 
@@ -77,3 +79,15 @@ async def get_current_user(token: HTTPAuthorizationCredentials = Depends(oauth2_
         conn.close()
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user_db['username']
+
+async def get_admin(token: HTTPAuthorizationCredentials = Depends(oauth2_scheme)):
+    """
+    Obtains the admin
+    """
+    payload = decode_access_token(token.credentials)
+    uname: str = payload.get("sub")
+    load_dotenv()
+    admin_uname = os.getenv("ADMIN_USERNAME")
+    if uname != admin_uname:
+        raise HTTPException(status_code=403, detail="Not authorized as admin")
+    return admin_uname

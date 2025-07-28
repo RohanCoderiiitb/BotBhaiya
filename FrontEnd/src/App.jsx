@@ -4,6 +4,7 @@ import UserSignup from './components/usersignup';
 import UserLogin from './components/userlogin';
 import GoogleSuccess from './components/googlesuccess';
 import AdminLogin from './components/adminlogin';
+import Admin from './components/adminpage';
 import Chat from './components/chat';
 import './App.css'
 
@@ -17,6 +18,7 @@ function App() {
         <Route path="/adminlogin" element={<AdminLogin/>}/>
         <Route path="/chat" element={<Chat/>}/>
         <Route path="/auth/google/success" element={<GoogleSuccess/>}/>
+        <Route path="/admin" element={<Admin/>}/>
       </Routes>
     </BrowserRouter>
   );
