@@ -2,7 +2,7 @@
 
 #Importing the necessary modules
 import os
-from fastapi import APIRouter, HTTPException, Request, Depends, status
+from fastapi import APIRouter, HTTPException, Request, Depends, status, File, UploadFile
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 from .chatbot import Indexing, Generation
@@ -105,6 +105,23 @@ async def index_docs(request: Request, index_request_data: IndexRequest, admin_u
     except Exception as e:
         print(f"[{__name__}] ERROR during indexing: {e}")
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred during indexing: {str(e)}")
+    
+@router.post("/upload", response_model= Dict[str, str])
+async def upload(files: List[UploadFile] = File(...), admin_user: str = Depends(get_admin)):
+    """
+    Uploads the files added by the admin to ./app/Data (overwritten if already exists)
+    """
+    upload_dir = "./app/Data"
+    os.makedirs(upload_dir, exist_ok=True)
+
+    for file in files:
+        file_path = os.path.join(upload_dir, file.filename)
+        with open(file_path, "wb") as f:
+            content = await file.read()
+            f.write(content)
+
+    return {"message": f"{len(files)} file(s) uploaded successfully."}
+
     
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_bot(request: Request, chat_request_data: ChatRequest, current_user_username: str = Depends(get_current_user)):
