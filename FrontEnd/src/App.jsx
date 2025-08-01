@@ -6,6 +6,9 @@ import GoogleSuccess from './components/googlesuccess';
 import AdminLogin from './components/adminlogin';
 import Admin from './components/adminpage';
 import Chat from './components/chat';
+import Indexing from './components/indexing';
+import Delete from './components/delete-retriever';
+import View from './components/view-chat-history';
 import './App.css'
 
 function App() {
@@ -19,6 +22,9 @@ function App() {
         <Route path="/chat" element={<Chat/>}/>
         <Route path="/auth/google/success" element={<GoogleSuccess/>}/>
         <Route path="/admin" element={<Admin/>}/>
+        <Route path="/index-docs" element={<Indexing/>}/>
+        <Route path="/delete-retriever" element={<Delete/>}/>
+        <Route path="/view-history" element={<View/>}/>
       </Routes>
     </BrowserRouter>
   );

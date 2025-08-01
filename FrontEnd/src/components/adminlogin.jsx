@@ -37,7 +37,7 @@ const AdminLogin = () => {
             localStorage.setItem("token", data.access_token);
             setUsername("");
             setPassword("");
-            navigate("/");
+            navigate("/admin");
         } catch (err) {
             setError(err.message);
         }

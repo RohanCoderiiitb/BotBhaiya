@@ -19,6 +19,7 @@ from fastapi.responses import RedirectResponse
 from starlette.requests import Request as StarletteRequest
 from .google_oauth import oauth
 from dotenv import load_dotenv
+import shutil
 
 router = APIRouter()
 
@@ -173,6 +174,25 @@ async def chat_with_bot(request: Request, chat_request_data: ChatRequest, curren
     except Exception as e:
         print(f"[{__name__}] An error occurred: {e}")
         raise HTTPException(status_code=500, detail="An error occurred")
+    
+@router.post("/delete-retriever", response_model=Dict[str, str])
+async def delete(request: Request, admin_user: str = Depends(get_admin)):
+    """
+    Deletes the retriever database files
+    """
+    print(f"[{__name__}] Admin {admin_user} requested to delete the retriever")
+    try:
+        if os.path.exists(PERSIST_DIRECTORY):
+            shutil.rmtree(PERSIST_DIRECTORY)
+            os.makedirs(PERSIST_DIRECTORY)
+            request.app.state.retriever_instance = None
+            print(f"[{__name__}] Retriever instance deleted successfully")
+            return {"message" : "Retriever deleted successfully"}
+        else:
+            return {"message" : "Retriever directory doesn't exist"}
+    except Exception as e:
+        print(f"[{__name__}] Error during retriever deletion : {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete retriever")
     
 @router.post("/usersignup", response_model=Dict[str, str])
 async def signup(user: UserCreate):
