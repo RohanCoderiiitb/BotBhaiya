@@ -37,13 +37,33 @@ def create_chat_history_table():
     """
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("DROP TABLE IF EXISTS chat_history")
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS chat_history(
+    CREATE TABLE IF NOT EXISTS chat_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        session_id TEXT NOT NULL,
+        message TEXT NOT NULL,
+        is_bot BOOLEAN NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    );""")
+    conn.commit()
+    conn.close()
+    print(f"[__name__] Chat history table ensured in {database_path}")
+
+def create_chat_memory_table():
+    """
+    Creates a table "chat_memory" in Users database
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS chat_memory (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             session_id TEXT NOT NULL,
-            message TEXT NOT NULL)
-        """)
+            message TEXT NOT NULL
+        );
+    """)
     conn.commit()
     conn.close()
     print(f"[__name__] Chat history table ensured in {database_path}")

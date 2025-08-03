@@ -50,7 +50,7 @@ const UserSignup = () => {
       setUsername("");
       setPassword("");
       setRepeatPassword("");
-      navigate("/chat");
+      navigate("/userlogin");
     } catch (err) {
       setError(err.message);
     }

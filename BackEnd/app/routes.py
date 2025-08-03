@@ -74,6 +74,16 @@ class AdminLogin(BaseModel):
     username: str
     password: str
 
+class FullChatMessage(BaseModel):
+    """
+    Schema for chat history
+    """
+    username: str
+    session_id: str
+    message: str
+    is_bot: bool
+    timestamp: str
+
 @router.post("/indexing", response_model=Dict[str, str])
 async def index_docs(request: Request, index_request_data: IndexRequest, admin_user: str = Depends(get_admin)):
     """
@@ -165,7 +175,7 @@ async def chat_with_bot(request: Request, chat_request_data: ChatRequest, curren
     message_history = SQLChatMessageHistory(
         session_id=f"{user_id}_{session_id}",
         connection=engine,
-        table_name="chat_history",
+        table_name="chat_memory",
         session_id_field_name="session_id"
     )
 
@@ -185,12 +195,47 @@ async def chat_with_bot(request: Request, chat_request_data: ChatRequest, curren
             memory=conversational_memory
         )
         answer, sources = generator.generate()
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO chat_history (user_id, session_id, message, is_bot) VALUES (?, ?, ?, ?)",
+                       (user_id, session_id, user_query, False))
+        cursor.execute("INSERT INTO chat_history (user_id, session_id, message, is_bot) Values (?, ?, ?, ?)",
+                       (user_id, session_id, answer, True))
+        conn.commit()
+        conn.close()
+
         print(f"[{__name__}] Generated answer: {answer}")
         print(f"[{__name__}] Sources: {list(sources)}")
         return ChatResponse(answer = answer, sources = list(sources), session_id = session_id)
     except Exception as e:
         print(f"[{__name__}] An error occurred: {e}")
         raise HTTPException(status_code=500, detail="An error occurred")
+    
+@router.get("/admin/chat_history", response_model=List[FullChatMessage])
+async def get_chat_history(admin_user: str = Depends(get_admin)):
+    """
+    Returns the chat history of all the users
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT u.username, ch.session_id, ch.message, ch.is_bot, ch.timestamp
+        FROM chat_history ch
+        JOIN users u ON u.id = ch.user_id
+        ORDER BY ch.timestamp ASC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return [
+        FullChatMessage(
+            username=row["username"],
+            session_id=row["session_id"],
+            message=row["message"],
+            is_bot=bool(row["is_bot"]),
+            timestamp=row["timestamp"]
+        ) for row in rows
+    ]
     
 @router.post("/delete-retriever", response_model=Dict[str, str])
 async def delete(request: Request, admin_user: str = Depends(get_admin)):

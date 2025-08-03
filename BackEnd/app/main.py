@@ -10,7 +10,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_chroma import Chroma
 from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL, SECRET_KEY
 from fastapi.middleware.cors import CORSMiddleware
-from .database import create_user_table, create_chat_history_table
+from .database import create_user_table, create_chat_history_table, create_chat_memory_table
 from starlette.middleware.sessions import SessionMiddleware
 import secrets
 
@@ -27,6 +27,10 @@ async def lifespan(app: FastAPI):
     print(f"[__name__] Ensuring that chat history table exists")
     create_chat_history_table()
     print(f"[__name__] Chat history table ready")
+
+    print(f"[__name__] Ensuring that chat memory table exists")
+    create_chat_memory_table()
+    print(f"[__name__] Chat memory table ready")
 
     print(f"[{__name__}] Application starting up..")
     print(f"[app.main] Checking for persist directory: {PERSIST_DIRECTORY}")
