@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 const GoogleSuccess = () => {
     const navigate = useNavigate();
-    const [failedLogin, setLoginFail] = useState(false);
+    const [loginFailed, setLoginFail] = useState(false);
 
     useEffect(() => {
         const query = new URLSearchParams(window.location.search);
@@ -11,7 +11,9 @@ const GoogleSuccess = () => {
         if (token) {
             localStorage.setItem("token", token);
             console.log("Google login mounted");
-            navigate("/chat");
+            setTimeout(()=>{
+                navigate("/chat");
+            }, 3000);
         } else {
             setLoginFail(true);
             setTimeout(() => {
