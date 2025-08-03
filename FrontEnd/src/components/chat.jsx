@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
 import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 
 const App = () => {
     const navigate = useNavigate();
@@ -170,12 +171,6 @@ const App = () => {
                             </svg>
                             Academic Resources
                         </button>
-                        <button className="w-full bg-[#4169E1] text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-[#3151B5] transition-all shadow-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-                                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h3.79a4.5 4.5 0 1 1 0 9Z"></path>
-                            </svg>
-                            Campus Services
-                        </button>
                     </div>
                 </aside>
 
@@ -220,7 +215,7 @@ const App = () => {
                                             : 'bg-gray-700 text-gray-100'
                                             }`}
                                     >
-                                        <div>{msg.text}</div>
+                                        <ReactMarkdown>{msg.text}</ReactMarkdown>
 
                                         {msg.sender === 'bot' && msg.sources && msg.sources.length > 0 && (
                                             <div className="mt-2 text-xs text-blue-400">
