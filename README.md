@@ -115,13 +115,20 @@ npm start
 4. chatbot.py - is the core chatbot logic that creates vector embeddings and makes API calls to Gemini
    
    <img width="672" height="335" alt="image" src="https://github.com/user-attachments/assets/f06a0f32-34e4-446b-a37c-6e37e6dd51bb" />
+   
    Credits: freecodecamp.org
 
 ---
 
 ## 📸 Screenshots
 
+<img width="1876" height="809" alt="image" src="https://github.com/user-attachments/assets/b463f9df-ab28-4733-ad43-f20515e8edb3" />
 
+<img width="1919" height="814" alt="image" src="https://github.com/user-attachments/assets/c168ff56-6c3c-4c2f-8b96-b395ce4e1d2e" />
+
+<img width="1880" height="783" alt="image" src="https://github.com/user-attachments/assets/a3163326-c7d0-4acd-ab02-f63d2be111e2" />
+
+<img width="1853" height="819" alt="image" src="https://github.com/user-attachments/assets/3870e9d2-16cd-43fb-b7b2-b1128126750c" />
 
 ---
 
