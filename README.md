@@ -2,7 +2,7 @@
 
 **BotBhaiya** is an AI-powered campus assistant designed to answer **any kind of question a fresher might have about IIIT Bangalore** — from factual queries like *"What electives does the ECE department offer?"* to opinion-based ones like *"Any tips for surviving the first semester?"*  
 
-It combines **accurate, sourced information** with a conversational, approachable tone — making it feel like chatting with a helpful senior.
+It combines **accurate, sourced information** with a conversational, approachable tone, making it feel like chatting with a helpful senior.
 
 ---
 
@@ -105,6 +105,16 @@ cd FrontEnd
 npm install
 npm start
 ```
+
+---
+
+## ⚙️ Implementation
+1. Used the Gemini API to generate sentences from the given context in the documents.
+2. The data directory in the backend contains relevant data used for indexing
+3. The chroma-index folder stores the vector embeddings for the chunks of information retrieved from the documents
+4. chatbot.py - is the core chatbot logic that creates vector embeddings and makes API calls to Gemini
+   <img width="672" height="335" alt="image" src="https://github.com/user-attachments/assets/f06a0f32-34e4-446b-a37c-6e37e6dd51bb" />
+
 
 ---
 
