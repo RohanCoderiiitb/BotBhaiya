@@ -236,25 +236,69 @@ async def get_chat_history(admin_user: str = Depends(get_admin)):
             timestamp=row["timestamp"]
         ) for row in rows
     ]
+
+@router.get("/user/chat_history", response_model=List[FullChatMessage])
+async def get_user_history(current_user: str = Depends(get_current_user)):
+    """
+    Returns the current users's chat history
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id FROM users WHERE username = ?", (current_user,))
+    user = cursor.fetchone()
+    if not user:
+        conn.close()
+        raise HTTPException(status_code=404, detail="User not found")
+    user_id = user["id"]
+    cursor.execute("SELECT session_id, message, is_bot, timestamp FROM chat_history WHERE user_id = ? ORDER BY timestamp ASC", (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [
+        FullChatMessage(
+            username = current_user,
+            session_id = row["session_id"],
+            message = row["message"],
+            is_bot = bool(row["is_bot"]),
+            timestamp = row["timestamp"]
+        ) for row in rows
+    ]
     
+from langchain_chroma import Chroma
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
 @router.post("/delete-retriever", response_model=Dict[str, str])
 async def delete(request: Request, admin_user: str = Depends(get_admin)):
-    """
-    Deletes the retriever database files
-    """
     print(f"[{__name__}] Admin {admin_user} requested to delete the retriever")
     try:
         if os.path.exists(PERSIST_DIRECTORY):
+            # Force connect to Chroma to close connection
+            try:
+                embedding_model_instance = GoogleGenerativeAIEmbeddings(
+                    model=DEFAULT_EMBEDDING_MODEL,
+                    google_api_key=GOOGLE_API_KEY
+                )
+                vector_store = Chroma(
+                    persist_directory=PERSIST_DIRECTORY,
+                    embedding_function=embedding_model_instance
+                )
+                vector_store._client.reset()
+                print(f"[{__name__}] Closed active ChromaDB connection.")
+            except Exception as e:
+                print(f"[{__name__}] Could not close ChromaDB connection: {e}")
+
             shutil.rmtree(PERSIST_DIRECTORY)
-            os.makedirs(PERSIST_DIRECTORY)
+            os.makedirs(PERSIST_DIRECTORY, exist_ok=True)
             request.app.state.retriever_instance = None
-            print(f"[{__name__}] Retriever instance deleted successfully")
-            return {"message" : "Retriever deleted successfully"}
+
+            return {"message": "Retriever deleted successfully"}
         else:
-            return {"message" : "Retriever directory doesn't exist"}
+            return {"message": "Retriever directory doesn't exist"}
+
     except Exception as e:
         print(f"[{__name__}] Error during retriever deletion : {e}")
         raise HTTPException(status_code=500, detail="Failed to delete retriever")
+
     
 @router.post("/usersignup", response_model=Dict[str, str])
 async def signup(user: UserCreate):
@@ -372,7 +416,6 @@ async def google_callback(request: StarletteRequest):
 
         conn.close()
 
-        # Generate JWT token
         access_token = create_access_token({"sub": username})
         print(f"[google_callback] JWT generated for user {username}")
 
