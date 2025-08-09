@@ -1,5 +1,7 @@
 # 🤖 BotBhaiya — Your Friendly IIITB Freshers' Assistant
 
+"Knowledge shared is knowledge squared — BotBhaiya, your trusted companion on the IIITB journey."
+
 **BotBhaiya** is an AI-powered campus assistant designed to answer **any kind of question a fresher might have about IIIT Bangalore** — from factual queries like *"What electives does the ECE department offer?"* to opinion-based ones like *"Any tips for surviving the first semester?"*  
 
 It combines **accurate, sourced information** with a conversational, approachable tone, making it feel like chatting with a helpful senior.
@@ -87,9 +89,9 @@ BotBhaiya/
 git clone https://github.com/RohanCoderIIITB/BotBhaiya.git
 cd BotBhaiya
 ```
-### 2️⃣ Set up environment variables by making a .env file and filling the following information: Get your Gemini API Key here: https://aistudio.google.com/app/apikey
+### 2️⃣ Set up environment variables by making a .env file and filling in the following information: Get your Gemini API Key here: https://aistudio.google.com/app/apikey
 ```bash
-GOOGLE_API_KEY = YOUR_GEMINI_API
+GOOGLE_API_KEY=YOUR_GEMINI_API
 ```
 
 ### 3️⃣ Backend Setup
@@ -124,9 +126,12 @@ npm start
 
 <img width="1876" height="809" alt="image" src="https://github.com/user-attachments/assets/b463f9df-ab28-4733-ad43-f20515e8edb3" />
 
+
 <img width="1919" height="814" alt="image" src="https://github.com/user-attachments/assets/c168ff56-6c3c-4c2f-8b96-b395ce4e1d2e" />
 
+
 <img width="1880" height="783" alt="image" src="https://github.com/user-attachments/assets/a3163326-c7d0-4acd-ab02-f63d2be111e2" />
+
 
 <img width="1853" height="819" alt="image" src="https://github.com/user-attachments/assets/3870e9d2-16cd-43fb-b7b2-b1128126750c" />
 
