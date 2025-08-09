@@ -124,12 +124,12 @@ npm start
 
 ## 📸 Screenshots
 
+### 🧑‍🎓 Freshers’ FAQs
 <img width="1876" height="809" alt="image" src="https://github.com/user-attachments/assets/b463f9df-ab28-4733-ad43-f20515e8edb3" />
-
-
+<br>
 <img width="1919" height="814" alt="image" src="https://github.com/user-attachments/assets/c168ff56-6c3c-4c2f-8b96-b395ce4e1d2e" />
 
-🏛️ Some Admin Privileges
+### 🏛️ Some Admin Privileges
 <br>
 <img width="1880" height="783" alt="image" src="https://github.com/user-attachments/assets/a3163326-c7d0-4acd-ab02-f63d2be111e2" />
 <br>
