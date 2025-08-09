@@ -1,0 +1,38 @@
+# Core API framework
+fastapi
+uvicorn
+
+# LangChain & AI
+langchain
+langchain-core
+langchain-community
+langchain-google-genai
+langchain-chroma
+
+# Chroma vector DB
+chromadb
+
+# Document loaders & processing
+pypdf
+unstructured
+python-docx
+python-pptx
+tiktoken
+
+# Google API Auth & OAuth
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+authlib
+starlette
+
+# Environment variables
+python-dotenv
+
+# JWT & security
+pyjwt
+passlib[bcrypt]
+python-jose
+
+# Database
+sqlalchemy  # optional if you plan to extend beyond sqlite3
