@@ -8,6 +8,14 @@ It combines **accurate, sourced information** with a conversational, approachabl
 
 ---
 
+## 🎉 Problem Solved
+
+As a fresher, my mind was buzzing with countless questions about academics, campus facilities, and more. Since seniors were often busy and couldn’t always respond quickly, I hesitated to bother them and ended up endlessly skimming through college documents and websites, wishing for a quick, reliable source of instant help and guidance during those first challenging weeks at IIITB.
+
+BotBhaiya is the instant, reliable companion every fresher needs during those first few weeks at IIITB—offering quick, accurate answers about academics, campus life, and administrative processes without the need to wait on busy seniors or dig through countless documents. It also provides practical advice on managing workload and balancing studies with social life, helping freshers smoothly navigate their transition until they build connections and find their footing.
+
+---
+
 ## ✨ Features
 
 - **📚 Factual Queries** — Pulls information from official IIITB documents, handbooks, and curated datasets.
