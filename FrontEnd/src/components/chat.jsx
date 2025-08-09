@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
+import { FaFilePdf } from "react-icons/fa"
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 
@@ -10,10 +11,19 @@ const App = () => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [isTyping, setIsTyping] = useState(false)
+    const [expandSources, setExpand] = useState(false);
+    const [expandedSources, setExpandedSources] = useState({});
 
     const toggleTheme = () => {
         setIsDarkTheme(!isDarkTheme);
     };
+
+    const toggleSources = (index) => {
+        setExpandedSources(prev => ({
+            ...prev,
+            [index]: !prev[index]
+        }));
+    }
 
     const handleLogout = () => {
         setShowLogoutConfirm(true);
@@ -108,50 +118,31 @@ const App = () => {
                     </h2>
                     <ul className="space-y-5">
                         <li className="flex items-center text-gray-400 hover:text-gray-200 cursor-pointer transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-2">
-                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" x2="8" y1="13" y2="13"></line>
-                                <line x1="16" x2="8" y1="17" y2="17"></line>
-                                <line x1="10" x2="8" y1="9" y2="9"></line>
-                            </svg>
-                            <a href="/SquareOneBrochure.pdf" target="_blank" rel="noopener noreferrer" className="text-sm underline hover:text-blue-400">
+                            <FaFilePdf className="text-red-500 mr-2" size={20} />
+                            <a
+                                href="/SquareOneBrochure.pdf"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm no-underline hover:underline hover:text-blue-400"
+                            >
                                 SquareOneBrochure
                             </a>
                         </li>
                         <li className="flex items-center text-gray-400 hover:text-gray-200 cursor-pointer transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-2">
-                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" x2="8" y1="13" y2="13"></line>
-                                <line x1="16" x2="8" y1="17" y2="17"></line>
-                                <line x1="10" x2="8" y1="9" y2="9"></line>
-                            </svg>
-                            <a href="/BTechCSE.pdf" target="_blank" rel="noopener noreferrer" className="text-sm underline hover:text-blue-400">
+                            <FaFilePdf className="text-red-500 mr-2" size={20} />
+                            <a href="/BTechCSE.pdf" target="_blank" rel="noopener noreferrer" className="text-sm no-underline hover:text-blue-400">
                                 BTech CSE Curriculum
                             </a>
                         </li>
                         <li className="flex items-center text-gray-400 hover:text-gray-200 cursor-pointer transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-2">
-                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" x2="8" y1="13" y2="13"></line>
-                                <line x1="16" x2="8" y1="17" y2="17"></line>
-                                <line x1="10" x2="8" y1="9" y2="9"></line>
-                            </svg>
-                            <a href="/BTechECE.pdf" target="_blank" rel="noopener noreferrer" className="text-sm underline hover:text-blue-400">
+                            <FaFilePdf className="text-red-500 mr-2" size={20} />
+                            <a href="/BTechECE.pdf" target="_blank" rel="noopener noreferrer" className="text-sm no-underline hover:text-blue-400">
                                 BTech ECE Curriculum
                             </a>
                         </li>
                         <li className="flex items-center text-gray-400 hover:text-gray-200 cursor-pointer transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-2">
-                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" x2="8" y1="13" y2="13"></line>
-                                <line x1="16" x2="8" y1="17" y2="17"></line>
-                                <line x1="10" x2="8" y1="9" y2="9"></line>
-                            </svg>
-                            <a href="/BTechDSAI.pdf" target="_blank" rel="noopener noreferrer" className="text-sm underline hover:text-blue-400">
+                            <FaFilePdf className="text-red-500 mr-2" size={20} />
+                            <a href="/BTechDSAI.pdf" target="_blank" rel="noopener noreferrer" className="text-sm no-underline hover:text-blue-400">
                                 BTech DSAI Curriculum
                             </a>
                         </li>
@@ -219,23 +210,32 @@ const App = () => {
 
                                         {msg.sender === 'bot' && msg.sources && msg.sources.length > 0 && (
                                             <div className="mt-2 text-xs text-blue-400">
-                                                Sources:
-                                                <ul className="list-disc list-inside space-y-1">
-                                                    {msg.sources.map((src, i) => (
-                                                        <li key={i}>
-                                                            <a
-                                                                href={src.replace('./app/Data', '')}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="underline hover:text-blue-300 break-words"
-                                                            >
-                                                                {src.replace('./app/Data/', '')}
-                                                            </a>
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                                <button
+                                                    onClick={() => toggleSources(index)}
+                                                    className="flex items-center gap-1 hover:text-blue-300 transition"
+                                                >
+                                                    Sources {expandedSources[index] ? "▲" : "▼"}
+                                                </button>
+
+                                                {expandedSources[index] && (
+                                                    <ul className="list-disc list-inside space-y-1 mt-1">
+                                                        {msg.sources.map((src, i) => (
+                                                            <li key={i}>
+                                                                <a
+                                                                    href={src.replace('./app/Data', '')}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="underline hover:text-blue-300 break-words"
+                                                                >
+                                                                    {src.replace('./app/Data/', '')}
+                                                                </a>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
                                             </div>
                                         )}
+
                                     </div>
                                 </div>
                             ))}
