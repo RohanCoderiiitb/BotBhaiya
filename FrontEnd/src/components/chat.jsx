@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
 import { FaFilePdf } from "react-icons/fa"
+import iiitbLogo from '../images/IIITB-logo.jpg'
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 
@@ -144,6 +145,21 @@ const App = () => {
                             <FaFilePdf className="text-red-500 mr-2" size={20} />
                             <a href="/BTechDSAI.pdf" target="_blank" rel="noopener noreferrer" className="text-sm no-underline hover:text-blue-400">
                                 BTech DSAI Curriculum
+                            </a>
+                        </li>
+                        <li className="flex items-center text-gray-400 hover:text-gray-200 cursor-pointer transition">
+                            <img
+                                src={iiitbLogo}
+                                alt="IIITB Logo"
+                                className="w-5 h-5 mr-2 object-contain"
+                            />
+                            <a
+                                href="https://iiitb.ac.in/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm no-underline hover:underline hover:text-blue-400"
+                            >
+                                IIITB-Official Website
                             </a>
                         </li>
                     </ul>
