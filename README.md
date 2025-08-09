@@ -12,7 +12,7 @@ It combines **accurate, sourced information** with a conversational, approachabl
 - **💬 Opinion-Based Advice** — Provides guidance backed by testimonials from seniors.
 - **🔐 Authentication** — User & admin login with Google OAuth support.
 - **🗂 Chat History** — View past conversations.
-- **⚙️ Retriever Management** — Admin panel to add/delete knowledge retrievers.
+- **⚙️ Retriever Management** — Admin panel to add/delete knowledge retrievers, viewing the users' chat history, etc.
 - **🖥 Full-Stack App** — Built with React (frontend) and Python FastAPI (backend).
 
 ---
@@ -71,7 +71,8 @@ BotBhaiya/
 - SQLite
 
 **AI & NLP:**
-- Custom Retriever + LLM integration
+- Langchain: for RAG functionalities
+- Gemini API: for generating sentences from the retrieved embeddings
 
 **Authentication:**
 - Google OAuth 2.0
@@ -83,18 +84,22 @@ BotBhaiya/
 
 ### 1️⃣ Clone the repository
 ```bash
-git clone https://github.com/yourusername/BotBhaiya.git
+git clone https://github.com/RohanCoderIIITB/BotBhaiya.git
 cd BotBhaiya
 ```
+### 2️⃣ Set up environment variables by making a .env file and filling the following information: Get your Gemini API Key here: https://aistudio.google.com/app/apikey
+```bash
+GOOGLE_API_KEY = YOUR_GEMINI_API
+```
 
-### 2️⃣ Backend Setup
+### 3️⃣ Backend Setup
 ```bash
 cd BackEnd
 pip install -r requirements.txt
 fastapi dev app/main.py
 ```
 
-### 3️⃣ Frontend Setup
+### 4️⃣ Frontend Setup
 ```bash
 cd FrontEnd
 npm install
@@ -109,11 +114,20 @@ npm start
 
 ---
 
+## ⚔️ Challenges Faced
+- Getting reliable and up-to-date sources about IIITB(syllabus changes, event details etc.)
+- Optimizing the system for faster response times.
+- Finding the right chunk size and overlap to preserve context while enabling precise retrieval.
+- Selecting an embedding model that delivers high-quality, domain-specific retrievals.
+- Tuning retrieval parameters to return the most relevant documents without noise.
+- Preventing the LLM from inventing information by clearly separating doc-based answers from general advice.
+
 ## 💡 Future Enhancements
-- Multi-turn conversation memory
-- Integration with campus events API
-- Offline mode for intranet-only access
-- Voice-based interaction
+- Support for multimodal inputs (images, audio, video) to enhance interaction capabilities.
+- Real-time collaborative chat allowing multiple users to interact simultaneously.
+- Personalized user profiles with memory to retain preferences and past conversations.
+- Advanced contextual reasoning with improved summarization of long texts and chats.
+- Integration with external APIs and services for added functionality (e.g., calendars, weather, code repositories).
 
 ---
 
