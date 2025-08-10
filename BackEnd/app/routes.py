@@ -397,7 +397,6 @@ async def google_callback(request: StarletteRequest):
 
         print(f"[google_callback] User email extracted: {username}")
 
-        # Check if user already exists
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM users WHERE username = ?", (username,))

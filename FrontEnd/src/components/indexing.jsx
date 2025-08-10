@@ -90,7 +90,6 @@ const IndexDocuments = () => {
                 <h2 className="text-2xl font-bold text-white text-center mb-4">Upload & Index Documents</h2>
                 <p className="text-gray-400 text-center mb-6">Drag & drop, or choose files to index.</p>
 
-                {/* Drag & Drop Zone */}
                 <div
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
@@ -99,7 +98,6 @@ const IndexDocuments = () => {
                     Drag and drop files here
                 </div>
 
-                {/* Manual File Input */}
                 <input
                     ref={inputRef}
                     type="file"
@@ -109,7 +107,6 @@ const IndexDocuments = () => {
                     className="w-full mb-4 bg-[#1a1a1a] border border-gray-600 rounded-xl px-4 py-2 text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                 />
 
-                {/* Preview Selected Files */}
                 {files.length > 0 && (
                     <div className="bg-[#1e1e1e] text-gray-300 p-4 rounded-xl mb-4 max-h-48 overflow-y-auto text-sm">
                         <p className="text-blue-400 mb-2">Files selected:</p>
@@ -119,7 +116,6 @@ const IndexDocuments = () => {
                             ))}
                         </ul>
 
-                        {/* Undo and Clear Buttons */}
                         <div className="mt-4 flex justify-end gap-4">
                             <button
                                 onClick={() => {
@@ -144,7 +140,6 @@ const IndexDocuments = () => {
                 )}
 
 
-                {/* Upload Button */}
                 <button
                     onClick={handleUploadAndIndex}
                     disabled={loading}
@@ -156,7 +151,6 @@ const IndexDocuments = () => {
                     {loading ? 'Uploading & Indexing...' : 'Upload & Index'}
                 </button>
 
-                {/* Toast Status */}
                 {status && (
                     <div
                         className={`mt-6 text-center py-2 px-4 rounded-xl ${status.type === 'success' ? 'bg-green-800 text-green-300' : 'bg-red-800 text-red-300'

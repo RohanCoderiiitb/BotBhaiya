@@ -42,7 +42,6 @@ const App = () => {
 
     const toggleHistoryModal = async () => {
         if (!showHistoryModal) {
-            // Only fetch when opening
             try {
                 const res = await fetch("http://localhost:8000/user/chat_history", {
                     method: "GET",
@@ -53,7 +52,6 @@ const App = () => {
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    // Map backend response to frontend message format
                     const mappedMessages = data.map(msg => ({
                         sender: msg.is_bot ? "bot" : "user",
                         text: msg.message,
@@ -65,7 +63,6 @@ const App = () => {
                 console.error("Error fetching chat history:", err);
             }
         } else {
-            // When closing, clear messages from chat area
             setMessages([]);
         }
         setShowHistoryModal(!showHistoryModal);
@@ -107,7 +104,6 @@ const App = () => {
             const botMessage = { sender: "bot", text: data.answer, sources: data.sources || [] };
             setMessages(prev => [...prev, botMessage]);
 
-            // Save messages to the backend
             await fetch("http://localhost:8000/chat/save", {
                 method: "POST",
                 headers: {
@@ -131,7 +127,7 @@ const App = () => {
 
     return (
         <div className={`flex flex-col min-h-screen font-inter ${isDarkTheme ? 'bg-[#121212] text-gray-100' : 'bg-[#f9f9f9] text-gray-900'} antialiased`}>
-            {/* Header */}
+            
             <header className={`flex items-center justify-between px-6 py-4 ${isDarkTheme ? 'bg-[#1f1f2f]' : 'bg-white'} shadow-md rounded-b-2xl`}>
                 <div className="flex items-center gap-4">
                     <a className="text-2xl font-extrabold flex items-center" href="/">
@@ -260,7 +256,7 @@ const App = () => {
                                     key={index}
                                     className={`flex gap-3 max-w-[70%] ${msg.sender === 'user' ? 'ml-auto justify-end' : 'mr-auto justify-start'}`}
                                 >
-                                    {/* ICON */}
+                                    
                                     {msg.sender === 'bot' && (
                                         <div className="mt-1">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" className="text-[#8a2be2]">
@@ -278,7 +274,7 @@ const App = () => {
                                         </div>
                                     )}
 
-                                    {/* MESSAGE BUBBLE */}
+                                    
                                     <div
                                         className={`px-4 py-2 rounded-xl text-sm leading-relaxed break-words ${msg.sender === 'user'
                                                 ? 'bg-blue-600 text-white'

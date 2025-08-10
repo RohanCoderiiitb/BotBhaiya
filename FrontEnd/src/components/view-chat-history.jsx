@@ -25,7 +25,6 @@ const View = () => {
     fetchHistory();
   }, []);
 
-  // Group by username -> session
   const grouped = history.reduce((acc, msg) => {
     if (!acc[msg.username]) acc[msg.username] = {};
     if (!acc[msg.username][msg.session_id]) acc[msg.username][msg.session_id] = [];
