@@ -218,8 +218,8 @@ const App = () => {
                                     {/* MESSAGE BUBBLE */}
                                     <div
                                         className={`px-4 py-2 rounded-xl text-sm leading-relaxed break-words ${msg.sender === 'user'
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-gray-700 text-gray-100'
+                                                ? 'bg-blue-600 text-white'
+                                                : 'bg-gray-700 text-gray-100 whitespace-pre-line'
                                             }`}
                                     >
                                         <ReactMarkdown>{msg.text}</ReactMarkdown>

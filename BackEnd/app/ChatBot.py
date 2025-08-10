@@ -21,7 +21,7 @@ class Indexing:
     and storing them in a Chroma vector database using Google Generative AI embeddings. It builds a 
     retriever for efficient semantic search over the indexed document chunks.
     """
-    def __init__(self, urls: list, persist_dir: str, embeddingmodel: str, api_key: str, chunk_size: int = 2000, chunk_overlap: int = 400): # Added type hints
+    def __init__(self, urls: list, persist_dir: str, embeddingmodel: str, api_key: str, chunk_size: int = 1000, chunk_overlap: int = 200): # Added type hints
         self.urls = urls
         self.persist_dir = persist_dir
         self.embeddingmodel = embeddingmodel
@@ -175,6 +175,7 @@ You are BotBhaiya, a helpful, friendly, and accurate assistant designed to guide
 3. When the question is opinion-based, personal, or open-ended, feel free to give your own thoughts, suggestions, or recommendations in a friendly, conversational manner — even if not present in the documents.
 4. Use bullet points or short sentences for clarity if helpful.
 5. Avoid making up fake facts about IIITB — clearly separate document-based answers from your own thoughts when needed.
+6. Do not use the names of seniors in your response whenever you encounter them in the retrieved documents
 
 Example:
 - **Doc-based**: "According to the curriculum documents..."
