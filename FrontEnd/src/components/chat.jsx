@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
-import { FaFilePdf } from "react-icons/fa"
+import { FaFilePdf, FaHistory } from "react-icons/fa"
 import iiitbLogo from '../images/IIITB-logo.jpg'
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
@@ -9,6 +9,7 @@ const App = () => {
     const navigate = useNavigate();
     const [isDarkTheme, setIsDarkTheme] = useState(true);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [isTyping, setIsTyping] = useState(false)
@@ -39,6 +40,42 @@ const App = () => {
         setShowLogoutConfirm(false);
     };
 
+    const toggleHistoryModal = async () => {
+        if (!showHistoryModal) {
+            // Only fetch when opening
+            try {
+                const res = await fetch("http://localhost:8000/user/chat_history", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    // Map backend response to frontend message format
+                    const mappedMessages = data.map(msg => ({
+                        sender: msg.is_bot ? "bot" : "user",
+                        text: msg.message,
+                        sources: msg.sources || []
+                    }));
+                    setMessages(mappedMessages);
+                }
+            } catch (err) {
+                console.error("Error fetching chat history:", err);
+            }
+        } else {
+            // When closing, clear messages from chat area
+            setMessages([]);
+        }
+        setShowHistoryModal(!showHistoryModal);
+    };
+
+    const copyToChat = (text) => {
+        setInput(text);
+        setShowHistoryModal(false);
+    };
+
     const endOfMessagesRef = useRef(null);
 
     useEffect(() => {
@@ -46,11 +83,14 @@ const App = () => {
     }, [messages]);
 
     const sendMsg = async () => {
-        const text = input.trim()
+        const text = input.trim();
         if (!text) return;
-        setMessages(prev => [...prev, { sender: "user", text }])
-        setInput('')
-        setIsTyping(true)
+
+        const userMessage = { sender: "user", text, sources: [] };
+        setMessages(prev => [...prev, userMessage]);
+        setInput('');
+        setIsTyping(true);
+
         try {
             const res = await fetch("http://localhost:8000/chat", {
                 method: "POST",
@@ -59,14 +99,33 @@ const App = () => {
                     "Authorization": `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({ query: text })
-            })
-            const data = await res.json()
-            setMessages(prev => [...prev, { sender: "bot", text: data.answer, sources: data.sources }]);
+            });
+            if (!res.ok) {
+                throw new Error("Failed to fetch chat response");
+            }
+            const data = await res.json();
+            const botMessage = { sender: "bot", text: data.answer, sources: data.sources || [] };
+            setMessages(prev => [...prev, botMessage]);
+
+            // Save messages to the backend
+            await fetch("http://localhost:8000/chat/save", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    messages: [
+                        { message: userMessage.text, is_bot: false },
+                        { message: botMessage.text, is_bot: true, sources: botMessage.sources }
+                    ]
+                })
+            });
         } catch (err) {
             console.error("Error fetching chat response:", err);
             setMessages(prev => [...prev, { sender: 'bot', text: '⚠️ Sorry, something went wrong.' }]);
         } finally {
-            setIsTyping(false)
+            setIsTyping(false);
         }
     }
 
@@ -97,6 +156,10 @@ const App = () => {
                             </div>
                         </label>
                     </div>
+                    <button onClick={toggleHistoryModal} className="bg-[#4B0082] text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-[#3C0066] transition-all shadow-md">
+                        <FaHistory size={20} />
+                        <span className="font-medium">Chat History</span>
+                    </button>
                     <button onClick={handleLogout} className="bg-[#DC143C] text-white px-5 py-2.5 rounded-full flex items-center gap-2 hover:bg-[#B22222] transition-all shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -251,7 +314,6 @@ const App = () => {
                                                 )}
                                             </div>
                                         )}
-
                                     </div>
                                 </div>
                             ))}
@@ -264,8 +326,6 @@ const App = () => {
                             <div ref={endOfMessagesRef} />
                         </div>
                     </div>
-
-
 
                     <div className="mt-6 flex items-center gap-4">
                         <input
@@ -296,6 +356,39 @@ const App = () => {
                                 Cancel
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {showHistoryModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className={`p-6 rounded-2xl shadow-2xl w-[90%] max-w-md ${isDarkTheme ? 'bg-[#1f1f2f]' : 'bg-white'} overflow-y-auto max-h-[80vh]`}>
+                        <h2 className="text-xl font-bold mb-3 text-center text-[#8a2be2]">Chat History</h2>
+                        <p className="text-sm text-center text-gray-400 mb-6">Select a message to copy to the chat input</p>
+                        <div className="space-y-4">
+                            {messages.length > 0 ? (
+                                messages.map((msg, index) => (
+                                    <div
+                                        key={index}
+                                        className={`p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition ${msg.sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-100'}`}
+                                        onClick={() => copyToChat(msg.text)}
+                                    >
+                                        <div className="text-sm">
+                                            <span className="font-semibold">{msg.sender === 'user' ? 'You' : 'BotBhaiya'}: </span>
+                                            <ReactMarkdown>{msg.text.length > 100 ? `${msg.text.substring(0, 100)}...` : msg.text}</ReactMarkdown>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-sm text-gray-400 text-center">No chat history available</p>
+                            )}
+                        </div>
+                        <button
+                            onClick={toggleHistoryModal}
+                            className="w-full mt-6 bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md transition shadow-md"
+                        >
+                            Close
+                        </button>
                     </div>
                 </div>
             )}
