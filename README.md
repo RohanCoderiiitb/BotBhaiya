@@ -185,9 +185,19 @@ npm start
 ## 📸 Screenshots
 
 ### 🧑‍🎓 Freshers’ FAQs
-<img width="1876" height="809" alt="image" src="https://github.com/user-attachments/assets/b463f9df-ab28-4733-ad43-f20515e8edb3" />
+<img width="1898" height="822" alt="image" src="https://github.com/user-attachments/assets/9192e2ae-b93e-4c7b-a28a-2534b039870f" />
+
 <br>
-<img width="1919" height="814" alt="image" src="https://github.com/user-attachments/assets/c168ff56-6c3c-4c2f-8b96-b395ce4e1d2e" />
+<img width="1898" height="822" alt="Screenshot 2025-08-12 230255" src="https://github.com/user-attachments/assets/212e65ff-53d7-436d-b32b-fcd83eefff1b" />
+
+<br>
+<img width="1887" height="818" alt="Screenshot 2025-08-12 230616" src="https://github.com/user-attachments/assets/869c7e2a-ed61-4ad7-884e-bc097ff279bc" />
+
+<br>
+<img width="1919" height="821" alt="Screenshot 2025-08-12 230709" src="https://github.com/user-attachments/assets/3b20c170-430b-4789-a92c-70fd98ef93a0" />
+
+<br>
+<img width="1885" height="818" alt="Screenshot 2025-08-12 230732" src="https://github.com/user-attachments/assets/4d97c14e-9f18-41cf-8931-ec46842072aa" />
 
 ### 🏛️ Some Admin Privileges
 <br>
