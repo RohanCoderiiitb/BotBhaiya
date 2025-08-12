@@ -99,7 +99,15 @@ cd BotBhaiya
 ```
 ### 2️⃣ Set up environment variables by making a .env file and filling in the following information: Get your Gemini API Key here: https://aistudio.google.com/app/apikey
 ```bash
-GOOGLE_API_KEY=YOUR_GEMINI_API
+GOOGLE_API_KEY=your_google_api_key_here
+USER_AGENT=Mozilla/5.0
+PERSIST_DIR=./chroma_index
+SECRET_KEY=your_secret_key_here
+ALGORITHM=HS256
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+ADMIN_USERNAME=admin@BotBhaiya
+ADMIN_PASSWORD=your_secure_password_here
 ```
 
 ### 3️⃣ Backend Setup
@@ -127,6 +135,50 @@ npm start
    <img width="672" height="335" alt="image" src="https://github.com/user-attachments/assets/f06a0f32-34e4-446b-a37c-6e37e6dd51bb" />
    
    Credits: freecodecamp.org
+
+---
+
+# 📡 API Endpoints
+
+## **Indexing & Upload**
+| Method | Endpoint            | Auth Required | Description |
+|--------|--------------------|--------------|-------------|
+| **POST** | `/indexing` | Admin | Index documents from a list of URLs into the knowledge base. |
+| **POST** | `/upload` | Admin | Upload file(s) to `./app/Data` for processing. |
+| **POST** | `/delete-retriever` | Admin | Delete the current Chroma retriever data. |
+
+---
+
+## **Chat**
+| Method | Endpoint            | Auth Required | Description |
+|--------|--------------------|--------------|-------------|
+| **POST** | `/chat` | User | Ask a question to the chatbot. Returns generated answer + sources. |
+
+---
+
+## **Chat History**
+| Method | Endpoint            | Auth Required | Description |
+|--------|--------------------|--------------|-------------|
+| **GET** | `/admin/chat_history` | Admin | Retrieve all users’ chat histories. |
+| **GET** | `/user/chat_history` | User | Retrieve the current user’s chat history. |
+
+---
+
+## **User Authentication**
+| Method | Endpoint            | Auth Required | Description |
+|--------|--------------------|--------------|-------------|
+| **POST** | `/usersignup` | None | Register a new user. |
+| **POST** | `/userlogin` | None | Log in as a user and get a JWT token. |
+| **POST** | `/adminlogin` | None | Log in as admin and get a JWT token. |
+
+---
+
+## **Google OAuth**
+| Method | Endpoint            | Auth Required | Description |
+|--------|--------------------|--------------|-------------|
+| **GET** | `/auth/google/login` | None | Redirect to Google login page. |
+| **GET** | `/auth/google/callback` | None | Handle Google OAuth callback and generate JWT token. |
+
 
 ---
 
