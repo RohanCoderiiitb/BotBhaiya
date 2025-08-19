@@ -99,7 +99,15 @@ cd BotBhaiya
 ```
 ### 2️⃣ Set up environment variables by making a .env file and filling in the following information: Get your Gemini API Key here: https://aistudio.google.com/app/apikey
 ```bash
-GOOGLE_API_KEY=YOUR_GEMINI_API
+GOOGLE_API_KEY=your_google_api_key_here
+USER_AGENT=Mozilla/5.0
+PERSIST_DIR=./chroma_index
+SECRET_KEY=your_secret_key_here
+ALGORITHM=HS256
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+ADMIN_USERNAME=admin@BotBhaiya
+ADMIN_PASSWORD=your_secure_password_here
 ```
 
 ### 3️⃣ Backend Setup
@@ -130,12 +138,66 @@ npm start
 
 ---
 
+# 📡 API Endpoints
+
+## **Indexing & Upload**
+| Method | Endpoint            | Auth Required | Description |
+|--------|--------------------|--------------|-------------|
+| **POST** | `/indexing` | Admin | Index documents from a list of URLs into the knowledge base. |
+| **POST** | `/upload` | Admin | Upload file(s) to `./app/Data` for processing. |
+| **POST** | `/delete-retriever` | Admin | Delete the current Chroma retriever data. |
+
+---
+
+## **Chat**
+| Method | Endpoint            | Auth Required | Description |
+|--------|--------------------|--------------|-------------|
+| **POST** | `/chat` | User | Ask a question to the chatbot. Returns generated answer + sources. |
+
+---
+
+## **Chat History**
+| Method | Endpoint            | Auth Required | Description |
+|--------|--------------------|--------------|-------------|
+| **GET** | `/admin/chat_history` | Admin | Retrieve all users’ chat histories. |
+| **GET** | `/user/chat_history` | User | Retrieve the current user’s chat history. |
+
+---
+
+## **User Authentication**
+| Method | Endpoint            | Auth Required | Description |
+|--------|--------------------|--------------|-------------|
+| **POST** | `/usersignup` | None | Register a new user. |
+| **POST** | `/userlogin` | None | Log in as a user and get a JWT token. |
+| **POST** | `/adminlogin` | None | Log in as admin and get a JWT token. |
+
+---
+
+## **Google OAuth**
+| Method | Endpoint            | Auth Required | Description |
+|--------|--------------------|--------------|-------------|
+| **GET** | `/auth/google/login` | None | Redirect to Google login page. |
+| **GET** | `/auth/google/callback` | None | Handle Google OAuth callback and generate JWT token. |
+
+
+---
+
 ## 📸 Screenshots
 
 ### 🧑‍🎓 Freshers’ FAQs
-<img width="1876" height="809" alt="image" src="https://github.com/user-attachments/assets/b463f9df-ab28-4733-ad43-f20515e8edb3" />
+<img width="1898" height="822" alt="image" src="https://github.com/user-attachments/assets/9192e2ae-b93e-4c7b-a28a-2534b039870f" />
+
 <br>
-<img width="1919" height="814" alt="image" src="https://github.com/user-attachments/assets/c168ff56-6c3c-4c2f-8b96-b395ce4e1d2e" />
+<img width="1898" height="822" alt="Screenshot 2025-08-12 230255" src="https://github.com/user-attachments/assets/212e65ff-53d7-436d-b32b-fcd83eefff1b" />
+
+<br>
+<img width="1887" height="818" alt="Screenshot 2025-08-12 230616" src="https://github.com/user-attachments/assets/869c7e2a-ed61-4ad7-884e-bc097ff279bc" />
+
+<br>
+<img width="1919" height="821" alt="Screenshot 2025-08-12 230709" src="https://github.com/user-attachments/assets/3b20c170-430b-4789-a92c-70fd98ef93a0" />
+
+<br>
+<img width="1885" height="818" alt="Screenshot 2025-08-12 230732" src="https://github.com/user-attachments/assets/4d97c14e-9f18-41cf-8931-ec46842072aa" />
 
 ### 🏛️ Some Admin Privileges
 <br>
