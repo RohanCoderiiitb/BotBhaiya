@@ -2,15 +2,13 @@
 
 # Importing necessary libraries
 import os
-from typing import Set, Tuple, Any # Added Any for type hinting
-from langchain_community.document_loaders import PyPDFLoader, UnstructuredMarkdownLoader, WebBaseLoader, UnstructuredPowerPointLoader, UnstructuredWordDocumentLoader, TextLoader # Ensure TextLoader is imported
+from typing import Set, Tuple, Any
+from langchain_community.document_loaders import PyPDFLoader, UnstructuredMarkdownLoader, WebBaseLoader, UnstructuredPowerPointLoader, UnstructuredWordDocumentLoader, TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_chroma import Chroma
-from chromadb import PersistentClient
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.memory import BaseMemory 
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.memory import BaseMemory
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from .config import GOOGLE_API_KEY, PERSIST_DIRECTORY, DEFAULT_EMBEDDING_MODEL, DEFAULT_LLM_MODEL
@@ -21,7 +19,7 @@ class Indexing:
     and storing them in a Chroma vector database using Google Generative AI embeddings. It builds a 
     retriever for efficient semantic search over the indexed document chunks.
     """
-    def __init__(self, urls: list, persist_dir: str, embeddingmodel: str, api_key: str, chunk_size: int = 1000, chunk_overlap: int = 200): # Added type hints
+    def __init__(self, urls: list, persist_dir: str, embeddingmodel: str, api_key: str, chunk_size: int = 1000, chunk_overlap: int = 200):
         self.urls = urls
         self.persist_dir = persist_dir
         self.embeddingmodel = embeddingmodel
@@ -31,12 +29,7 @@ class Indexing:
         self.embedding_model_instance = GoogleGenerativeAIEmbeddings(model=self.embeddingmodel, google_api_key=self.api_key)
         self.vector_store = Chroma(persist_directory=self.persist_dir, embedding_function=self.embedding_model_instance)
 
-
     def load_documents(self):
-        """
-        This function loads all the documents from the specified directory
-        Returns a list of all the documents loaded
-        """
         all_docs = []
         if not self.urls:
             raise ValueError("No document paths or urls provided")
@@ -59,7 +52,7 @@ class Indexing:
                     elif url.endswith(".docx") or url.endswith(".doc"):
                         print(f"[{__name__}] Loading local Word document from: {abs_file_path}")
                         loader = UnstructuredWordDocumentLoader(abs_file_path)
-                    elif url.endswith(".txt"): 
+                    elif url.endswith(".txt"):
                         print(f"[{__name__}] Loading local Text document from: {abs_file_path}")
                         loader = TextLoader(abs_file_path)
                     else:
@@ -74,44 +67,32 @@ class Indexing:
         if not all_docs:
             raise RuntimeError("❌ No documents were successfully loaded")
         return all_docs
-    
+
     def document_splitter(self, docs):
-        """
-        This functions splits the documents into smaller chunks 
-        Returns a list of smaller document chunks with specified chunk sizes and overlap
-        """
         splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size = self.chunk_size,
-            chunk_overlap = self.chunk_overlap
+            chunk_size=self.chunk_size,
+            chunk_overlap=self.chunk_overlap
         )
         splits = splitter.split_documents(docs)
         return splits
-    
+
     def embed_and_store(self, splits):
-        """
-        Embeds and stores the given chunks of documents into a persistent vector database using Chroma.
-        This method ADDS documents to the existing vector store.
-        """
         print(f"[{__name__}] Adding {len(splits)} chunks to ChromaDB...")
-        self.vector_store.add_documents(documents=splits) 
+        self.vector_store.add_documents(documents=splits)
         print(f"[{__name__}] Chunks added and persisted.")
-    
+
     def build_indexing(self):
-        """
-        Initiates the indexing process and builds a retriever for semantic search.
-        Returns an instance of the retriever class used to perform similarity-based searches over the embedded document chunks.
-        """
         print(f"[{__name__}] Starting document indexing process...")
         docs = self.load_documents()
         print(f"[{__name__}] Splitting {len(docs)} documents into chunks...")
         splits = self.document_splitter(docs)
         print(f"[{__name__}] Created {len(splits)} chunks.")
 
-        self.embed_and_store(splits) 
-        
-        retriever = self.vector_store.as_retriever( 
-            search_type = "mmr",
-            search_kwargs = {"k":10}
+        self.embed_and_store(splits)
+
+        retriever = self.vector_store.as_retriever(
+            search_type="mmr",
+            search_kwargs={"k": 10}
         )
         print(f"[{__name__}] Indexing complete. Retriever ready.")
         return retriever
@@ -122,17 +103,7 @@ class Generation:
     a large language model(Gemini 2.5 Flash). It enables semantic question-answering over indexed content using 
     a retriever and a generative model.
     """
-    def __init__(self, query, api_key, retriever, model, memory: BaseMemory):
-        """
-        Initializes the Generation class.
-
-        Args:
-            query (str): The current user query.
-            api_key (str): Google API key for the LLM.
-            retriever (Any): The LangChain retriever instance (from ChromaDB).
-            model (str): The LLM model to use.
-            memory (BaseMemory): A pre-configured LangChain memory object (e.g., ConversationBufferWindowMemory).
-        """
+    def __init__(self, query: str, api_key: str, retriever: Any, model: str, memory: BaseMemory):
         self.query = query
         self.api_key = api_key
         self.retriever = retriever
@@ -140,9 +111,9 @@ class Generation:
         self.memory = memory
 
         self.llm = ChatGoogleGenerativeAI(
-            model = self.model,
-            temperature = 0,
-            google_api_key = self.api_key
+            model=self.model,
+            temperature=0,
+            google_api_key=self.api_key
         )
 
         contextualize_q_system_prompt = """
@@ -153,7 +124,6 @@ Your task:
 2. If the user question is opinion-based, personal, or open-ended (e.g., "What do you think of hostel life at IIITB?", "Should I take AI or Data Mining?"), keep it exactly as it is — do not reformulate.
 3. Do NOT answer the question here; only return the reformulated or original question.
 """
-
 
         contextualize_q_prompt = ChatPromptTemplate.from_messages(
             [("system", contextualize_q_system_prompt),
@@ -166,22 +136,19 @@ Your task:
         )
 
         qa_system_prompt = """
-        {context}
+{context}
 You are BotBhaiya, a helpful, friendly, and accurate assistant designed to guide new students joining IIITB.
 
 **Answering Guidelines**:
-1. When the question is factual and the information exists in the retrieved documents, answer using only that information.
-2. When the question is factual but no relevant information exists in the documents, politely indicate that the documents do not mention it, but provide your own best answer or helpful advice based on your general knowledge. Asking the user to consult seniors, official data etc. can be a way
-3. When the question is opinion-based, personal, or open-ended, feel free to give your own thoughts, suggestions, or recommendations in a friendly, conversational manner — even if not present in the documents.
-4. Use bullet points or short sentences for clarity if helpful.
-5. Avoid making up fake facts about IIITB — clearly separate document-based answers from your own thoughts when needed.
-6. Do not use the names of seniors in your response whenever you encounter them in the retrieved documents
-
-Example:
-- **Doc-based**: "According to the curriculum documents..."
-- **Opinion-based**: "In my view, many students prefer... because..."
+1. When the question is factual and the information exists in the retrieved documents, answer concisely using ONLY that information.
+2. If the user's question is about a topic not found in the documents, use your general knowledge to provide a helpful and friendly response. Do NOT state that the information is missing from the documents.
+3. For open-ended or opinion-based questions, provide your own thoughtful and conversational suggestions, even if the answer is not in the documents.
+4. Use bullet points or short sentences for clarity and readability.
+5. Avoid making up fake facts about IIITB.
+6. Do not use the names of seniors in your response whenever you encounter them in the retrieved documents.
+7. Make sure that you donot return an empty answer
+8. Add emojis wherever needed. Make sure the user has a good experience and touches him/her emotionally
 """
-
 
         qa_prompt = ChatPromptTemplate.from_messages(
             [
@@ -194,10 +161,10 @@ Example:
         self.document_chain = create_stuff_documents_chain(self.llm, qa_prompt)
         self.rag_chain = create_retrieval_chain(self.history_aware_retriever, self.document_chain)
 
-    def generate(self):
+    def generate(self) -> Tuple[str, Set[str]]:
         """
         Generates response by retrieving the relevant document chunks and passing them to the LLM.
-        Returns the response generated and the sources refered to, for the answer
+        Returns the response generated and the sources referred to, for the answer
         """
         
         chat_history_messages = self.memory.load_memory_variables({})["chat_history"]
@@ -207,12 +174,23 @@ Example:
             "chat_history": chat_history_messages
         })
 
-        answer = response["answer"]
+        # Correctly extract the answer from the response dictionary
+        answer = response.get("answer", "I'm sorry, I couldn't generate an answer based on the provided documents.")
+        
         sources = set()
         if "context" in response:
             for doc in response["context"]:
                 if doc.metadata and "source" in doc.metadata:
                     sources.add(doc.metadata["source"])
             
-        self.memory.save_context({"input":self.query}, {"output":answer})
+        print("[DEBUG] Raw LLM response:", response)
+
+        # The save context call is handled automatically by ConversationBufferWindowMemory
+        # when a new message is added. You can leave this out or let the memory chain handle it.
+        # But for an explicit call, it should look like this:
+        self.memory.save_context(
+            {"input": self.query}, 
+            {"output": answer}
+        )
+
         return answer, sources

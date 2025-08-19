@@ -103,20 +103,6 @@ const App = () => {
             const data = await res.json();
             const botMessage = { sender: "bot", text: data.answer, sources: data.sources || [] };
             setMessages(prev => [...prev, botMessage]);
-
-            await fetch("http://localhost:8000/chat/save", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    messages: [
-                        { message: userMessage.text, is_bot: false },
-                        { message: botMessage.text, is_bot: true, sources: botMessage.sources }
-                    ]
-                })
-            });
         } catch (err) {
             console.error("Error fetching chat response:", err);
             setMessages(prev => [...prev, { sender: 'bot', text: '⚠️ Sorry, something went wrong.' }]);

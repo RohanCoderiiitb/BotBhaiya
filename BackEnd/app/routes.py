@@ -45,6 +45,7 @@ class ChatResponse(BaseModel):
     """
     answer: str
     sources: List[str]
+    session_id: Optional[str] = None
 
 class UserCreate(BaseModel):
     """
